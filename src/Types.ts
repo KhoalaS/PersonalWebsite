@@ -4,6 +4,7 @@ export interface OutputLine {
   path?: string
 }
 
+
 export interface File {
   type: Filetype
   content: Array<File>

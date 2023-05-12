@@ -44,34 +44,12 @@ function cd(args: Array<string>) {
     // TODO propagate to root
     return console.log('propagate to root')
   }
-  
+
   const input = args[0].trim()
-  const path = input.split('/')
-  let contents = cwd.content
+  const fileExists = find(input, cwd)
 
-  let returnFolder: File | undefined = undefined
-
-  for (var i = 0; i < path.length; i++) {
-    let lState = false
-    for (var j = 0; j < contents.length; j++) {
-      if (contents[j].name == path[i]) {
-        console.log(`found part ${contents[j].name} of path in index ${i}`)
-        if (i == path.length - 1 && contents[j].type == Filetype.folder) {
-          returnFolder = contents[j]
-        } else {
-          contents = contents[j].content
-        }
-        lState = true
-        break
-      }
-    }
-    if (!lState) {
-      break
-    }
-  }
-  if (returnFolder != undefined) {
-    cwd = returnFolder
-    console.log(output.value)
+  if (fileExists.exist) {
+    cwd = fileExists.file!
   } else {
     const error: OutputLine = {
       type: 'output',
