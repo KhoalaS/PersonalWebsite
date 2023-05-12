@@ -6,16 +6,17 @@ export interface OutputLine {
 
 export class File {
   type: Filetype
-  content: Array<File> = []
+  content: File[] = []
   name: string
   parent?: File
   text?: string
   last: number
-  constructor(type: Filetype, name: string, last: number,parent?: File) {
+  constructor(type: Filetype, name: string, last: number,parent?: File, text?: string) {
     this.type = type
     this.name = name
     this.parent = parent
     this.last = last
+    this.text = text
   }
 
   getAbsolutePath() {

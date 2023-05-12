@@ -13,6 +13,7 @@ const props = defineProps({
 const output = inject(shellOutputKey)!
 const inputLine = inject(shellInputKey)!
 const preamble: OutputLine = { type: 'preamble', content: '' }
+
 const fontSize = 1.25
 const width = inject(shellWidthKey)
 
@@ -27,7 +28,7 @@ function echo(line: string) {
 }
 
 // TODO add autocomplete
-function cd(args: Array<string>) {
+function cd(args: string[]) {
   if (args.length > 1) {
     send({
       type: 'output',
@@ -60,7 +61,7 @@ function cd(args: Array<string>) {
   return 0
 }
 
-function mkdir(args: Array<string>) {
+function mkdir(args: string[]) {
   const parsedArgs = parseArgs(args)
   const p = parsedArgs.options.includes('p')
 
@@ -98,7 +99,7 @@ function clear() {
   return 0
 }
 
-function ls(args: Array<string>) {
+function ls(args: string[]) {
   const parsedArgs = parseArgs(args)
   const long = parsedArgs.options.includes('l')
 
@@ -111,7 +112,7 @@ function ls(args: Array<string>) {
       if (long) {
         let extra = ''
         if (file.type == Filetype.folder) {
-          extra += 'dwxrwxr-x'
+          extra += 'drwxrwxr-x'
         } else {
           extra += '-rw-rw-r--'
         }
@@ -129,7 +130,7 @@ function ls(args: Array<string>) {
       }
     })
   } else {
-    const errors: Array<string> = []
+    const errors: string[] = []
     const found: Array<{ name: string; content: File[] }> = []
     parsedArgs.folders.forEach((elem) => {
       const fileExists = find(elem, cwd)
@@ -151,7 +152,6 @@ function ls(args: Array<string>) {
     })
     console.log(parsedArgs)
 
-
     //TODO get the largest filesize for proper formatting with -l
     found.forEach((elem) => {
       if (!(parsedArgs.folders.length == 1 && errors.length == 0)) {
@@ -161,7 +161,7 @@ function ls(args: Array<string>) {
         if (long) {
           let extra = ''
           if (file.type == Filetype.folder) {
-            extra += 'dwxrwxr-x'
+            extra += 'drwxrwxr-x'
           } else {
             extra += '-rw-rw-r--'
           }
@@ -220,7 +220,7 @@ function find(input: string, start: File): FileExist {
   }
 }
 
-function test(args: Array<string>) {
+function test(args: string[]) {
   const ret = find(args[0], cwd)
   console.log(ret)
 }
@@ -251,11 +251,17 @@ function handleInput(line: string) {
       case 'echo':
         echo(line)
         break
+      case 'touch':
+        args.splice(0, 1)
+        touch(args)
+        break
       case 'test':
         args.splice(0, 1)
         test(args)
         sendPreamble()
-
+        break
+      default:
+        sendPreamble()
         break
     }
   }
@@ -278,10 +284,10 @@ function sendPreamble() {
   }
 }
 
-function parseArgs(args: Array<string>) {
-  const rawOptions: Array<string> = []
-  const folders: Array<string> = []
-  const options: Array<string> = []
+function parseArgs(args: string[]) {
+  const rawOptions: string[] = []
+  const folders: string[] = []
+  const options: string[] = []
 
   if (args.length == 0) {
     return { options: rawOptions, folders }
@@ -350,6 +356,36 @@ function recCreateFolder(input: string, start: File, p: boolean): number {
       return recCreateFolder(path.join('/'), folder, p)
     }
   }
+}
+
+function touch(args: string[]) {
+  const parsedArgs = parseArgs(args)
+  //TODO check options
+  for (var i = 0; i < parsedArgs.folders.length; i++) {
+    const path = parsedArgs.folders[i].split('/')
+    const dest = path.splice(-1)[0]
+    const fileExists = find(path.join('/'), cwd)
+    if (fileExists.exist && fileExists.file!.type == Filetype.folder) {
+      let updated = false
+      for (var j = 0; j < fileExists.file!.content.length; j++) {
+        if (fileExists.file!.content[j].name == dest) {
+          fileExists.file!.last = Date.now()
+          updated = true
+          break
+        }
+      }
+      if (!updated) {
+        const file = new File(Filetype.file, dest, Date.now(), fileExists.file!, '')
+        fileExists.file!.content.push(file)
+      }
+    } else {
+      send({
+        type: 'error',
+        content: `touch: '${parsedArgs.folders[i]}' kann nicht berührt werden: Datei oder Verzeichnis nicht gefunden`
+      })
+    }
+  }
+  sendPreamble()
 }
 
 defineExpose({
