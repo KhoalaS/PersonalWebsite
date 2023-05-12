@@ -9,10 +9,13 @@ export class File {
   content: Array<File> = []
   name: string
   parent?: File
-  constructor(type: Filetype, name: string, parent?: File) {
+  text?: string
+  last: number
+  constructor(type: Filetype, name: string, last: number,parent?: File) {
     this.type = type
     this.name = name
     this.parent = parent
+    this.last = last
   }
 
   getAbsolutePath() {

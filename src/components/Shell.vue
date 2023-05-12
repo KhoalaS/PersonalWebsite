@@ -139,19 +139,23 @@ async function chat(input: string) {
 
 <template>
   <main class="crt">
-    <Filesystem :user="host" ref="fs"></Filesystem>
+    <Filesystem :user="username" ref="fs"></Filesystem>
     <div
       id="shell"
       ref="shellContainer"
       @click="(event) => prevent(event)"
-      class="flex flex-col h-[28rem] w-[50vw] border-2 border-black bg-black bg-opacity-60 overflow-y-scroll"
+      class="flex flex-col h-[28rem] w-[50vw] border-2 border-black bg-black bg-opacity-60 overflow-y-scroll selection:bg-white selection:text-black"
     >
       <div @click="(event) => prevent(event)" class="px-2 active:outline-none">
         <div v-for="line in output" class="text-xl font-terminess">
           <div v-if="line.type == 'preamble'" class="flex gap-[2px]">
-            <p class="text-yellow-500">{{ props.username }}</p>
+            <p class="text-yellow-500 selection:bg-yellow-500 selection:text-black">
+              {{ props.username }}
+            </p>
             <p class="text-white">@</p>
-            <p class="text-purple-500">{{ props.host }}</p>
+            <p class="text-purple-500 selection:bg-purple-500 selection:text-black">
+              {{ props.host }}
+            </p>
             <p v-if="line.path" class="text-white">{{ ':~' + line.path }}</p>
             <p v-else class="text-white">:~$</p>
           </div>
