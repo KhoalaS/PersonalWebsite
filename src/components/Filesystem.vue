@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Filetype, type File, type OutputLine, type FileExist } from '@/Types'
+import { Filetype, type OutputLine, type FileExist, File } from '@/Types'
 import { inject } from 'vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
 
@@ -16,16 +16,12 @@ const preamble: OutputLine = { type: 'preamble', content: '' }
 const fontSize = 1.25
 const width = inject(shellWidthKey)
 
-let cwd: File = {
-  type: Filetype.folder,
-  content: [],
-  name: '/'
-}
+let cwd = new File(Filetype.folder, '/')
 
 function echo(line: string) {
   send({
     type: 'output',
-    content: line
+    content: line.substring(5)
   })
   sendPreamble()
 }
@@ -41,8 +37,10 @@ function cd(args: Array<string>) {
     return
   }
   if (args.length == 0) {
-    // TODO propagate to root
-    return console.log('propagate to root')
+    const root = cwd.getRoot()
+    cwd = root
+    sendPreamble()
+    return
   }
 
   const input = args[0].trim()
@@ -77,12 +75,7 @@ function mkdir(args: Array<string>) {
     return
   }
 
-  const file: File = {
-    name: args[0],
-    type: Filetype.folder,
-    parent: cwd,
-    content: []
-  }
+  const file = new File(Filetype.folder, args[0], cwd)
   cwd.content.push(file)
   sendPreamble()
   return 0
@@ -177,6 +170,9 @@ function handleInput(line: string) {
         args.splice(0, 1)
         ls(args)
         break
+      case 'echo':
+        echo(line)
+        break
       case 'test':
         args.splice(0, 1)
         test(args)
@@ -197,7 +193,7 @@ function sendPreamble() {
     let _preamble = {
       type: 'preamble',
       content: '',
-      path: cwd.name
+      path: cwd.getAbsolutePath()
     }
     send(_preamble)
   } else {

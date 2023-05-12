@@ -4,12 +4,35 @@ export interface OutputLine {
   path?: string
 }
 
-
-export interface File {
+export class File {
   type: Filetype
-  content: Array<File>
+  content: Array<File> = []
   name: string
   parent?: File
+  constructor(type: Filetype, name: string, parent?: File) {
+    this.type = type
+    this.name = name
+    this.parent = parent
+  }
+
+  getAbsolutePath() {
+    let _parent = this.parent
+    const parts = []
+    parts.push(this.name)
+    while (_parent != undefined) {
+      parts.push(_parent.name)
+      _parent = _parent.parent
+    }
+    return parts.reverse().join('/').substring(1)
+  }
+
+  getRoot(): File {
+    let _parent = this.parent
+    if (_parent == undefined) {
+      return this
+    }
+    return _parent.getRoot()
+  }
 }
 
 export enum Filetype {
