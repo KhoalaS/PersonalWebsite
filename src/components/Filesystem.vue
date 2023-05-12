@@ -2,7 +2,7 @@
 import { Filetype, type OutputLine, type FileExist, File } from '@/Types'
 import { inject } from 'vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
-
+import { formatTimestamp } from '@/DateLib'
 const props = defineProps({
   user: {
     type: String,
@@ -61,21 +61,33 @@ function cd(args: Array<string>) {
 }
 
 function mkdir(args: Array<string>) {
-  //TODO recursive dir creation with -p
-  //check if dir already exists
-  let fileExists = find(args[0], cwd)
+  const parsedArgs = parseArgs(args)
+  const p = parsedArgs.options.includes('p')
 
-  if (fileExists.exist) {
-    const error: OutputLine = {
-      type: 'output',
-      content: `mkdir: das Verzeichnis »${args[0]}“ kann nicht angelegt werden: Die Datei existiert bereits`
+  parsedArgs.folders.forEach((elem) => {
+    let fileExists = find(elem, cwd)
+
+    if (fileExists.exist) {
+      const error: OutputLine = {
+        type: 'output',
+        content: `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Die Datei existiert bereits`
+      }
+      send(error)
+      return
     }
-    send(error)
-    sendPreamble()
-    return
-  }
+    if (p) {
+      const exit = recCreateFolder(elem, cwd, true)
+    } else {
+      const exit = recCreateFolder(elem, cwd, false)
+      if (exit == -1) {
+        send({
+          type: 'error',
+          content: `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Datei oder Verzeichnis nicht gefunden`
+        })
+      }
+    }
+  })
 
-  recCreateFolder(args[0], cwd)
   sendPreamble()
   return 0
 }
@@ -86,7 +98,6 @@ function clear() {
   return 0
 }
 
-// TODO add args
 function ls(args: Array<string>) {
   const parsedArgs = parseArgs(args)
   const long = parsedArgs.options.includes('l')
@@ -106,7 +117,9 @@ function ls(args: Array<string>) {
         }
         extra += ` ${props.user} ${props.user} ${
           file.type == Filetype.folder ? '4096' : String(file.text!.length + 1)
-        } lastmodified ${file.type == Filetype.folder ? file.name + '/' : file.name}`
+        } ${formatTimestamp(file.last)} ${
+          file.type == Filetype.folder ? file.name + '/' : file.name
+        }`
         send({ type: 'output', content: extra })
       } else {
         send({
@@ -138,6 +151,8 @@ function ls(args: Array<string>) {
     })
     console.log(parsedArgs)
 
+
+    //TODO get the largest filesize for proper formatting with -l
     found.forEach((elem) => {
       if (!(parsedArgs.folders.length == 1 && errors.length == 0)) {
         send({ type: 'output', content: elem.name + ':' })
@@ -152,7 +167,9 @@ function ls(args: Array<string>) {
           }
           extra += ` ${props.user} ${props.user} ${
             file.type == Filetype.folder ? '4096' : String(file.text!.length + 1)
-          } lastmodified ${file.type == Filetype.folder ? file.name + '/' : file.name}`
+          } ${formatTimestamp(file.last)} ${
+            file.type == Filetype.folder ? file.name + '/' : file.name
+          }`
           send({ type: 'output', content: extra })
         } else {
           send({ type: 'output', content: file.name })
@@ -166,7 +183,6 @@ function ls(args: Array<string>) {
   sendPreamble()
 }
 
-// TODO support absolute paths [checking if first char is '/']
 function find(input: string, start: File): FileExist {
   if (input.length == 0) {
     return { exist: true, file: start }
@@ -249,7 +265,6 @@ function send(line: OutputLine) {
   output.value.push(line)
 }
 
-// TODO  get full path
 function sendPreamble() {
   if (cwd.name != '/') {
     let _preamble = {
@@ -292,29 +307,50 @@ function parseArgs(args: Array<string>) {
   return { options, folders }
 }
 
-function recCreateFolder(input: string, start: File): number {
+function recCreateFolder(input: string, start: File, p: boolean): number {
   if (input.length == 0) {
     return 0
   }
   const path = input.split('/')
   if (input[0] == '/') {
-    return recCreateFolder(input.substring(1), start.getRoot())
+    return recCreateFolder(input.substring(1), start.getRoot(), p)
   }
   if (path[0] == '.') {
     path.splice(0, 1)
-    return recCreateFolder(path.join('/'), start)
+    return recCreateFolder(path.join('/'), start, p)
   }
   if (path[0] == '..') {
     path.splice(0, 1)
-    return recCreateFolder(path.join('/'), start.parent!)
+    return recCreateFolder(path.join('/'), start.parent!, p)
   }
-  const folder = new File(Filetype.folder, path[0], Date.now(), start)
-  start.content.push(folder)
-  path.splice(0, 1)
-  return recCreateFolder(path.join('/'), folder)
-}
+  let found = null
+  for (var i = 0; i < start.content.length; i++) {
+    if (start.content[i].name == path[0]) {
+      found = start.content[i]
+      break
+    }
+  }
 
-function formatTimestamp(unixtime: number) {}
+  if (found != null) {
+    path.splice(0, 1)
+    return recCreateFolder(path.join('/'), found, p)
+  } else {
+    if (p) {
+      const folder = new File(Filetype.folder, path[0], Date.now(), start)
+      start.content.push(folder)
+      path.splice(0, 1)
+      return recCreateFolder(path.join('/'), folder, p)
+    } else {
+      if (path.length > 1) {
+        return -1
+      }
+      const folder = new File(Filetype.folder, path[0], Date.now(), start)
+      start.content.push(folder)
+      path.splice(0, 1)
+      return recCreateFolder(path.join('/'), folder, p)
+    }
+  }
+}
 
 defineExpose({
   handleInput

@@ -6,10 +6,11 @@ Meine persönliche Website
 
 Coreutils:
 - [x] clear
-- [ ] mkdir
-  - [ ] rekursiv mit -p
+- [x] mkdir
+  - [x] rekursiv mit -p
 - [x] cd
 - [ ] ls
-  - [ ] actually use args and not just cwd
+  - [x] actually use args and not just cwd
+  - [ ] -l long output
 - [x] echo
 - [ ] touch
