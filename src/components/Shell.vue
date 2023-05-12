@@ -3,19 +3,30 @@ import { onMounted, onUpdated, provide, ref } from 'vue'
 import type { Ref } from 'vue'
 import type { OutputLine } from '@/Types'
 import Filesystem from './Filesystem.vue'
-import { shellOutputKey, shellInputKey } from '@/Keys'
+import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
 
 const preamble = { type: 'preamble', content: '' }
 const output: Ref<Array<OutputLine>> = ref([])
 const inputLine = ref('')
-const inputRef = ref<HTMLInputElement | null>(null)
+const inputRef = ref<HTMLElement | null>(null)
 const shellContainer = ref<HTMLDivElement | null>(null)
 const history: Array<string> = []
 const openaiKey = import.meta.env.VITE_OPENAI_KEY
 let searchIndex = history.length
+let width: Ref<number | undefined> = ref(undefined)
+
+provide(shellWidthKey, width)
+
 const props = defineProps({
   username: { type: String, required: true },
   host: { type: String, required: true }
+})
+
+onMounted(() => {
+  width.value = shellContainer.value?.clientWidth
+  window.addEventListener('resize', () => {
+    width.value = shellContainer.value?.clientWidth
+  })
 })
 
 provide(shellOutputKey, output)
@@ -42,6 +53,7 @@ function prevent(event: Event) {
 
 async function keyPress(event: KeyboardEvent) {
   if (event.key == 'Enter') {
+    event.preventDefault()
     const line = inputLine.value.trim()
     if (line.length == 0) {
       return sendPreamble()
@@ -69,6 +81,7 @@ function insertHistory(line: string) {
   searchIndex = history.length
 }
 
+// TODO add autocomplete
 function keyDown(event: KeyboardEvent) {
   switch (event.key) {
     case 'ArrowDown':
@@ -125,13 +138,13 @@ async function chat(input: string) {
 </script>
 
 <template>
-  <main>
-    <Filesystem ref="fs"></Filesystem>
+  <main class="crt">
+    <Filesystem :user="host" ref="fs"></Filesystem>
     <div
       id="shell"
       ref="shellContainer"
       @click="(event) => prevent(event)"
-      class="crt flex flex-col h-[28rem] w-[50vw] border-2 border-black bg-black bg-opacity-60 overflow-y-scroll"
+      class="flex flex-col h-[28rem] w-[50vw] border-2 border-black bg-black bg-opacity-60 overflow-y-scroll"
     >
       <div @click="(event) => prevent(event)" class="px-2 active:outline-none">
         <div v-for="line in output" class="text-xl font-terminess">
@@ -147,16 +160,16 @@ async function chat(input: string) {
           </div>
         </div>
       </div>
-      <input
+      <textarea
         spellcheck="false"
         ref="inputRef"
         autocomplete="on"
         @keydown="(event) => keyDown(event)"
         @keypress="(event) => keyPress(event)"
-        class="text-white text-xl font-terminess bg-black bg-opacity-0 focus:outline-none px-2 z-10 caret-white"
+        class="min-h-[1lh] text-white text-xl font-terminess h-full bg-black bg-opacity-0 focus:outline-none px-2 z-10 caret-white overflow-auto resize-none"
         v-model="inputLine"
         type="text"
-      />
+      ></textarea>
     </div>
   </main>
 </template>

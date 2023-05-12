@@ -1,7 +1,7 @@
 export interface OutputLine {
   type: string
   content: string
-  path? : string
+  path?: string
 }
 
 export interface File {
@@ -14,4 +14,9 @@ export interface File {
 export enum Filetype {
   file = 'FILE',
   folder = 'FOLDER'
+}
+
+export interface FileExist {
+  exist: boolean
+  file?: File
 }

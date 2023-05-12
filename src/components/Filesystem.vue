@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { Filetype, type File, type OutputLine } from '@/Types'
+import { Filetype, type File, type OutputLine, type FileExist } from '@/Types'
 import { inject } from 'vue'
-import { shellOutputKey, shellInputKey } from '@/Keys'
+import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
+
+const props = defineProps({
+  user: {
+    type: String,
+    required: true
+  }
+})
 
 const output = inject(shellOutputKey)!
 const inputLine = inject(shellInputKey)!
 const preamble: OutputLine = { type: 'preamble', content: '' }
+const fontSize = 1.25
+const width = inject(shellWidthKey)
 
 let cwd: File = {
   type: Filetype.folder,
@@ -18,37 +27,28 @@ function echo(line: string) {
     type: 'output',
     content: line
   })
-  send(preamble)
+  sendPreamble()
 }
 
+// TODO add autocomplete
 function cd(args: Array<string>) {
   if (args.length > 1) {
     send({
       type: 'output',
       content: 'Too many args for cd command'
     })
-    send(preamble)
+    sendPreamble()
     return
   }
-  const input = args[0].trim()
-  if (input == '..') {
-    if (cwd.parent != undefined) {
-      cwd = cwd.parent
-    }
-    return 0
-  }
-  if (input == '.') {
-    return 0
-  }
-
-  if (input == '') {
+  if (args.length == 0) {
     // TODO propagate to root
+    return console.log('propagate to root')
   }
-
+  
+  const input = args[0].trim()
   const path = input.split('/')
   let contents = cwd.content
 
-  let pState = false
   let returnFolder: File | undefined = undefined
 
   for (var i = 0; i < path.length; i++) {
@@ -57,7 +57,6 @@ function cd(args: Array<string>) {
       if (contents[j].name == path[i]) {
         console.log(`found part ${contents[j].name} of path in index ${i}`)
         if (i == path.length - 1 && contents[j].type == Filetype.folder) {
-          pState = true
           returnFolder = contents[j]
         } else {
           contents = contents[j].content
@@ -72,13 +71,6 @@ function cd(args: Array<string>) {
   }
   if (returnFolder != undefined) {
     cwd = returnFolder
-    let cdPreamble = {
-      type: 'preamble',
-      content: '',
-      path: returnFolder.name
-    }
-    //TODO use fullpath here
-    send(cdPreamble)
     console.log(output.value)
   } else {
     const error: OutputLine = {
@@ -86,8 +78,8 @@ function cd(args: Array<string>) {
       content: `cd: The directory '${args[0]}' does not exist`
     }
     send(error)
-    send(preamble)
   }
+  sendPreamble()
 
   return 0
 }
@@ -95,15 +87,15 @@ function cd(args: Array<string>) {
 function mkdir(args: Array<string>) {
   //TODO recursive dir creation with -p
   //check if dir already exists
-  let exists = existsFile(args[0])
+  let fileExists = find(args[0], cwd)
 
-  if (exists) {
+  if (fileExists.exist) {
     const error: OutputLine = {
       type: 'output',
       content: `mkdir: das Verzeichnis »${args[0]}“ kann nicht angelegt werden: Die Datei existiert bereits`
     }
     send(error)
-    send(preamble)
+    sendPreamble()
     return
   }
 
@@ -114,19 +106,74 @@ function mkdir(args: Array<string>) {
     content: []
   }
   cwd.content.push(file)
-  send(preamble)
-
+  sendPreamble()
   return 0
 }
 
 function clear() {
   output.value.length = 0
-  send(preamble)
+  sendPreamble()
   return 0
 }
 
-function test() {
-  console.log('test expose')
+// TODO add args
+function ls(args: Array<string>) {
+  const parsedArgs = parseArgs(args)
+
+  if (width != undefined) {
+    console.log(width.value)
+  }
+  const contents = cwd.content
+  let output = ''
+  contents.forEach((file) => {
+    output += file.name
+
+    //TODO actually compute output based on window width
+    if (file.type == Filetype.folder) {
+      output += '/'
+    }
+    send({ type: 'output', content: output })
+  })
+  sendPreamble()
+}
+
+// TODO support absolute paths [checking if first char is '/']
+function find(input: string, start: File): FileExist {
+  if (input.length == 0) {
+    return { exist: true, file: start }
+  }
+  const path = input.split('/')
+  if (path[0] == '.') {
+    path.splice(0, 1)
+    return find(path.join('/'), start)
+  }
+  if (path[0] == '..') {
+    if (start.parent != undefined) {
+      path.splice(0, 1)
+      return find(path.join('/'), start.parent)
+    } else {
+      return { exist: false }
+    }
+  }
+  const file = path[0]
+  let fileObj = null
+  for (var i = 0; i < start.content.length; i++) {
+    if (start.content[i].name == file) {
+      fileObj = start.content[i]
+      console.log(`found part ${file}`)
+    }
+  }
+  if (fileObj == null) {
+    return { exist: false }
+  } else {
+    path.splice(0, 1)
+    return find(path.join('/'), fileObj)
+  }
+}
+
+function test(args: Array<string>) {
+  const ret = find(args[0], cwd)
+  console.log(ret)
 }
 
 function handleInput(line: string) {
@@ -145,6 +192,19 @@ function handleInput(line: string) {
         args.splice(0, 1)
         cd(args)
         break
+      case '':
+        sendPreamble()
+        break
+      case 'ls':
+        args.splice(0, 1)
+        ls(args)
+        break
+      case 'test':
+        args.splice(0, 1)
+        test(args)
+        sendPreamble()
+
+        break
     }
   }
 }
@@ -153,13 +213,37 @@ function send(line: OutputLine) {
   output.value.push(line)
 }
 
-function existsFile(name: string) {
-  for (var i = 0; i < cwd.content.length; i++) {
-    if (cwd.content[i].name == name) {
-      return true
+// TODO  get full path
+function sendPreamble() {
+  if (cwd.name != '/') {
+    let _preamble = {
+      type: 'preamble',
+      content: '',
+      path: cwd.name
+    }
+    send(_preamble)
+  } else {
+    send(preamble)
+  }
+}
+
+function parseArgs(args: Array<string>) {
+  const options: Array<string> = []
+  const folders: Array<string> = []
+
+  if (args.length == 0) {
+    return { options, folders }
+  }
+
+  for (var i = 0; i < args.length; i++) {
+    if (args[i][0] == '-') {
+      options.push(args[i])
+    } else {
+      folders.push(args[i])
     }
   }
-  return false
+
+  return { options, folders }
 }
 
 defineExpose({
