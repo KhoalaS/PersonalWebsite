@@ -26,11 +26,9 @@ Meine persönliche Website
 ### I/O Functions
 
 - [ ] redirect >,<, >>
-
-  - ">" Implementation
-    - Check for > in the args array only pass args till first >
-    - save return LineOutput message (possible changes in every util to acommodate)
-    - _if_ error check if stderr is redirected
-    - _else_ redirect into file
-
+  -  >
+     - [ ] only redirect stdout
+     - [ ] multiple OutputLines for redirect Function
+     - [ ] "real" redirect 
+       - probably do the actual push in the send method at the very end in handleinput
 - [ ] pipe |
