@@ -228,35 +228,33 @@ function test(args: string[]) {
 function handleInput(line: string) {
   if (output != undefined && inputLine != undefined) {
     const args = line.split(' ')
-    switch (args[0]) {
+    const command = args.splice(0, 1)[0]
+    switch (command) {
       case 'clear':
         clear()
         break
       case 'mkdir':
-        args.splice(0, 1)
         mkdir(args)
         console.log(cwd)
         break
       case 'cd':
-        args.splice(0, 1)
         cd(args)
         break
       case '':
         sendPreamble()
         break
       case 'ls':
-        args.splice(0, 1)
         ls(args)
         break
       case 'echo':
         echo(line)
         break
       case 'touch':
-        args.splice(0, 1)
         touch(args)
         break
+      case 'cat':
+        cat(args)
       case 'test':
-        args.splice(0, 1)
         test(args)
         sendPreamble()
         break
@@ -385,6 +383,23 @@ function touch(args: string[]) {
       })
     }
   }
+  sendPreamble()
+}
+
+function cat(args: string[]) {
+  const parsedArgs = parseArgs(args)
+  parsedArgs.folders.forEach((elem) => {
+    const found = find(elem, cwd)
+    if (found.exist) {
+      if (found.file!.type == Filetype.file) {
+        send({ type: 'output', content: found.file!.text! })
+      } else {
+        send({ type: 'error', content: `cat: ${elem}: ist in Verzeichnis` })
+      }
+    } else {
+      send({ type: 'error', content: `cat: ${elem}: Datei oder Verzeichnis nicht gefunden` })
+    }
+  })
   sendPreamble()
 }
 

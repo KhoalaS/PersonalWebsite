@@ -21,6 +21,9 @@ Meine persönliche Website
 - [ ] touch
   - [ ] check options
   - [x] update and create modify time
+- [x] chat, a ChatGPT integration
+  - Usage: chat [message]  
+  - for local only, dont want to expose API Key in frontend or use dedicated backend
 
 ### I/O Functions
 
