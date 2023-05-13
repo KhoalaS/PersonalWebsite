@@ -31,22 +31,19 @@ function initFs(start: File) {
 }
 
 function echo(line: string) {
-  send('output', line.substring(5))
-  sendPreamble()
+  return send('output', line)
 }
 
 // TODO add autocomplete
 function cd(args: string[]) {
+  let output = null
   if (args.length > 1) {
-    send('output', 'Too many args for cd command')
-    sendPreamble()
-    return
+    return send('output', 'Too many args for cd command')
   }
   if (args.length == 0) {
     const root = cwd.getRoot()
     cwd = root
-    sendPreamble()
-    return
+    return output
   }
 
   const input = args[0].trim()
@@ -54,38 +51,36 @@ function cd(args: string[]) {
 
   if (fileExists.exist) {
     if (fileExists.file!.type == Filetype.file) {
-      send('error', `cd: '${input}' is not a directory`)
+      return send('error', `cd: '${input}' is not a directory`)
     } else {
       cwd = fileExists.file!
     }
   } else {
-    send('error', `cd: The directory '${args[0]}' does not exist`)
+    return send('error', `cd: The directory '${args[0]}' does not exist`)
   }
-  sendPreamble()
 
-  return 0
+  return output
 }
 
 function mkdir(args: string[]) {
   const parsedArgs = parseArgs(args)
   const p = parsedArgs.options.includes('p')
+  let output: OutputLine | null = null
 
   parsedArgs.folders.forEach((elem) => {
     let fileExists = find(elem, cwd)
 
     if (fileExists.exist) {
-      send(
+      return send(
         'error',
         `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Die Datei existiert bereits`
       )
-      return
-    }
-    if (p) {
+    } else if (p) {
       const exit = recCreateFolder(elem, cwd, true)
     } else {
       const exit = recCreateFolder(elem, cwd, false)
       if (exit == -1) {
-        send(
+        return send(
           'error',
           `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Datei oder Verzeichnis nicht gefunden`
         )
@@ -93,17 +88,16 @@ function mkdir(args: string[]) {
     }
   })
 
-  sendPreamble()
-  return 0
+  return output
 }
 
 function clear() {
   output.value.length = 0
-  sendPreamble()
   return 0
 }
 
 function ls(args: string[]) {
+  let output = null
   const parsedArgs = parseArgs(args)
   const long = parsedArgs.options.includes('l')
 
@@ -125,9 +119,9 @@ function ls(args: string[]) {
         } ${formatTimestamp(file.last)} ${
           file.type == Filetype.folder ? file.name + '/' : file.name
         }`
-        send('output', extra)
+        return send('output', extra)
       } else {
-        send('output', file.type == Filetype.folder ? file.name + '/' : file.name)
+        return send('output', file.type == Filetype.folder ? file.name + '/' : file.name)
       }
     })
   } else {
@@ -146,17 +140,16 @@ function ls(args: string[]) {
       }
     })
     errors.forEach((file) => {
-      send(
+      return send(
         'error',
         `ls: Zugriff auf '${file}' nicht möglich: Datei oder Verzeichnis nicht gefunden`
       )
     })
-    console.log(parsedArgs)
 
     //TODO get the largest filesize for proper formatting with -l
     found.forEach((elem) => {
       if (!(parsedArgs.folders.length == 1 && errors.length == 0)) {
-        send('output', elem.name + ':')
+        output = send('output', elem.name + ':')
       }
       elem.content.forEach((file) => {
         if (long) {
@@ -171,17 +164,17 @@ function ls(args: string[]) {
           } ${formatTimestamp(file.last)} ${
             file.type == Filetype.folder ? file.name + '/' : file.name
           }`
-          send('output', extra)
+          return send('output', extra)
         } else {
-          send('output', file.name)
+          return send('output', file.name)
         }
       })
       if (!(parsedArgs.folders.length == 1 && errors.length == 0)) {
-        send('output', '')
+        return send('output', '')
       }
     })
   }
-  sendPreamble()
+  return output
 }
 
 function find(input: string, start: File): FileExist {
@@ -189,6 +182,7 @@ function find(input: string, start: File): FileExist {
     return { exist: true, file: start }
   }
   const path = input.split('/')
+
   if (input[0] == '/') {
     return find(input.substring(1), start.getRoot())
   }
@@ -226,49 +220,84 @@ function test(args: string[]) {
   console.log(ret)
 }
 
+// TODO use recursion to implement > redirect
 function handleInput(line: string) {
   if (output != undefined && inputLine != undefined) {
-    const args = line.split(' ')
+    const redirects = line.split('>')
+    const mainArg = redirects.splice(0, 1)[0].trim()
+
+    const args = mainArg.split(' ')
     const command = args.splice(0, 1)[0]
+    let output: OutputLine | null = null
+
     switch (command) {
       case 'clear':
         clear()
         break
       case 'mkdir':
-        mkdir(args)
-        console.log(cwd)
+        output = mkdir(args)
         break
       case 'cd':
-        cd(args)
+        output = cd(args)
         break
       case '':
-        sendPreamble()
         break
       case 'ls':
-        ls(args)
+        output = ls(args)
         break
       case 'echo':
-        echo(line)
+        output = echo(args.join(' '))
         break
       case 'touch':
-        touch(args)
+        output = touch(args)
         break
       case 'cat':
-        cat(args)
+        output = cat(args)
         break
       case 'test':
         test(args)
-        sendPreamble()
-        break
-      default:
-        sendPreamble()
         break
     }
+    console.log(output)
+    redirects.forEach((elem) => {
+      if (output != null) {
+        redirect(elem.trim(), output)
+      } else {
+        redirect(elem.trim(), { type: 'output', content: '' })
+      }
+    })
+    sendPreamble()
   }
 }
 
-function send(type: string, content: string, path?: string) {
+function redirect(target: string, output: OutputLine) {
+  //TODO check options
+  const path = target.split('/')
+  const dest = path.splice(-1)[0]
+  const fileExists = find(path.join('/'), cwd)
+  if (fileExists.exist && fileExists.file!.type == Filetype.folder) {
+    let updated = false
+    for (var j = 0; j < fileExists.file!.content.length; j++) {
+      if (fileExists.file!.content[j].name == dest) {
+        fileExists.file!.last = Date.now()
+        fileExists.file!.text = output.content
+        updated = true
+        break
+      }
+    }
+    if (!updated) {
+      const file = new File(Filetype.file, dest, Date.now(), fileExists.file!, output.content)
+      fileExists.file!.content.push(file)
+    }
+  } else {
+    return send('error', `warning: An error occurred while redirecting file '${target}'`)
+  }
+  return output
+}
+
+function send(type: string, content: string, path?: string): OutputLine {
   output.value.push({ type, content, path })
+  return { type, content, path }
 }
 
 function sendPreamble() {
@@ -354,6 +383,7 @@ function recCreateFolder(input: string, start: File, p: boolean): number {
 }
 
 function touch(args: string[]) {
+  let output = null
   const parsedArgs = parseArgs(args)
   //TODO check options
   for (var i = 0; i < parsedArgs.folders.length; i++) {
@@ -374,30 +404,31 @@ function touch(args: string[]) {
         fileExists.file!.content.push(file)
       }
     } else {
-      send(
+      return send(
         'error',
         `touch: '${parsedArgs.folders[i]}' kann nicht berührt werden: Datei oder Verzeichnis nicht gefunden`
       )
     }
   }
-  sendPreamble()
+  return output
 }
 
 function cat(args: string[]) {
+  let output = null
   const parsedArgs = parseArgs(args)
   parsedArgs.folders.forEach((elem) => {
     const found = find(elem, cwd)
     if (found.exist) {
       if (found.file!.type == Filetype.file) {
-        send('output', found.file!.text!)
+        output = send('output', found.file!.text!)
       } else {
-        send('error', `cat: ${elem}: ist in Verzeichnis`)
+        output = send('error', `cat: ${elem}: ist in Verzeichnis`)
       }
     } else {
-      send('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`)
+      output = send('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`)
     }
   })
-  sendPreamble()
+  return output
 }
 
 defineExpose({
