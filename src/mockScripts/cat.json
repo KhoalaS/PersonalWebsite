@@ -1,0 +1,20 @@
+{
+  "script": [
+    "function cat(args: string[]) {",
+    "\tconst parsedArgs = parseArgs(args)",
+    "\tparsedArgs.folders.forEach((elem) => {",
+    "\t\tconst found = find(elem, cwd)",
+    "\t\tif (found.exist) {",
+    "\t\t\tif (found.file!.type == Filetype.file) {",
+    "\t\t\t\tsend('output', found.file!.text!)",
+    "\t\t\t} else {",
+    "\t\t\t\tsend('error', `cat: ${elem}: ist in Verzeichnis`)",
+    "\t\t\t}",
+    "\t\t} else {",
+    "\t\t\tsend('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`)",
+    "\t\t}",
+    "\t})",
+    "\tsendPreamble()",
+    "}"
+  ]
+}

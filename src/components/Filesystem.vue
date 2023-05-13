@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Filetype, type OutputLine, type FileExist, File } from '@/Types'
-import { inject } from 'vue'
+import { initCustomFormatter, inject } from 'vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
 import { formatTimestamp } from '@/DateLib'
+import catMock from '@/mockScripts/cat.json'
+
 const props = defineProps({
   user: {
     type: String,
@@ -19,21 +21,24 @@ const width = inject(shellWidthKey)
 
 let cwd = new File(Filetype.folder, '/', Date.now())
 
+initFs(cwd)
+
+function initFs(start: File) {
+  const bin = new File(Filetype.folder, 'bin', Date.now(), start)
+  const catScript = new File(Filetype.file, 'cat', Date.now(), bin, catMock.script.join('\n'))
+  bin.content.push(catScript)
+  cwd.content.push(bin)
+}
+
 function echo(line: string) {
-  send({
-    type: 'output',
-    content: line.substring(5)
-  })
+  send('output', line.substring(5))
   sendPreamble()
 }
 
 // TODO add autocomplete
 function cd(args: string[]) {
   if (args.length > 1) {
-    send({
-      type: 'output',
-      content: 'Too many args for cd command'
-    })
+    send('output', 'Too many args for cd command')
     sendPreamble()
     return
   }
@@ -48,13 +53,13 @@ function cd(args: string[]) {
   const fileExists = find(input, cwd)
 
   if (fileExists.exist) {
-    cwd = fileExists.file!
-  } else {
-    const error: OutputLine = {
-      type: 'output',
-      content: `cd: The directory '${args[0]}' does not exist`
+    if (fileExists.file!.type == Filetype.file) {
+      send('error', `cd: '${input}' is not a directory`)
+    } else {
+      cwd = fileExists.file!
     }
-    send(error)
+  } else {
+    send('error', `cd: The directory '${args[0]}' does not exist`)
   }
   sendPreamble()
 
@@ -69,11 +74,10 @@ function mkdir(args: string[]) {
     let fileExists = find(elem, cwd)
 
     if (fileExists.exist) {
-      const error: OutputLine = {
-        type: 'output',
-        content: `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Die Datei existiert bereits`
-      }
-      send(error)
+      send(
+        'error',
+        `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Die Datei existiert bereits`
+      )
       return
     }
     if (p) {
@@ -81,10 +85,10 @@ function mkdir(args: string[]) {
     } else {
       const exit = recCreateFolder(elem, cwd, false)
       if (exit == -1) {
-        send({
-          type: 'error',
-          content: `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Datei oder Verzeichnis nicht gefunden`
-        })
+        send(
+          'error',
+          `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Datei oder Verzeichnis nicht gefunden`
+        )
       }
     }
   })
@@ -121,12 +125,9 @@ function ls(args: string[]) {
         } ${formatTimestamp(file.last)} ${
           file.type == Filetype.folder ? file.name + '/' : file.name
         }`
-        send({ type: 'output', content: extra })
+        send('output', extra)
       } else {
-        send({
-          type: 'output',
-          content: file.type == Filetype.folder ? file.name + '/' : file.name
-        })
+        send('output', file.type == Filetype.folder ? file.name + '/' : file.name)
       }
     })
   } else {
@@ -145,17 +146,17 @@ function ls(args: string[]) {
       }
     })
     errors.forEach((file) => {
-      send({
-        type: 'error',
-        content: `ls: Zugriff auf '${file}' nicht möglich: Datei oder Verzeichnis nicht gefunden`
-      })
+      send(
+        'error',
+        `ls: Zugriff auf '${file}' nicht möglich: Datei oder Verzeichnis nicht gefunden`
+      )
     })
     console.log(parsedArgs)
 
     //TODO get the largest filesize for proper formatting with -l
     found.forEach((elem) => {
       if (!(parsedArgs.folders.length == 1 && errors.length == 0)) {
-        send({ type: 'output', content: elem.name + ':' })
+        send('output', elem.name + ':')
       }
       elem.content.forEach((file) => {
         if (long) {
@@ -170,13 +171,13 @@ function ls(args: string[]) {
           } ${formatTimestamp(file.last)} ${
             file.type == Filetype.folder ? file.name + '/' : file.name
           }`
-          send({ type: 'output', content: extra })
+          send('output', extra)
         } else {
-          send({ type: 'output', content: file.name })
+          send('output', file.name)
         }
       })
       if (!(parsedArgs.folders.length == 1 && errors.length == 0)) {
-        send({ type: 'output', content: '' })
+        send('output', '')
       }
     })
   }
@@ -254,6 +255,7 @@ function handleInput(line: string) {
         break
       case 'cat':
         cat(args)
+        break
       case 'test':
         test(args)
         sendPreamble()
@@ -265,20 +267,15 @@ function handleInput(line: string) {
   }
 }
 
-function send(line: OutputLine) {
-  output.value.push(line)
+function send(type: string, content: string, path?: string) {
+  output.value.push({ type, content, path })
 }
 
 function sendPreamble() {
   if (cwd.name != '/') {
-    let _preamble = {
-      type: 'preamble',
-      content: '',
-      path: cwd.getAbsolutePath()
-    }
-    send(_preamble)
+    send('preamble', '', cwd.getAbsolutePath())
   } else {
-    send(preamble)
+    send('preamble', '')
   }
 }
 
@@ -377,10 +374,10 @@ function touch(args: string[]) {
         fileExists.file!.content.push(file)
       }
     } else {
-      send({
-        type: 'error',
-        content: `touch: '${parsedArgs.folders[i]}' kann nicht berührt werden: Datei oder Verzeichnis nicht gefunden`
-      })
+      send(
+        'error',
+        `touch: '${parsedArgs.folders[i]}' kann nicht berührt werden: Datei oder Verzeichnis nicht gefunden`
+      )
     }
   }
   sendPreamble()
@@ -392,12 +389,12 @@ function cat(args: string[]) {
     const found = find(elem, cwd)
     if (found.exist) {
       if (found.file!.type == Filetype.file) {
-        send({ type: 'output', content: found.file!.text! })
+        send('output', found.file!.text!)
       } else {
-        send({ type: 'error', content: `cat: ${elem}: ist in Verzeichnis` })
+        send('error', `cat: ${elem}: ist in Verzeichnis`)
       }
     } else {
-      send({ type: 'error', content: `cat: ${elem}: Datei oder Verzeichnis nicht gefunden` })
+      send('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`)
     }
   })
   sendPreamble()

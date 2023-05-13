@@ -25,8 +25,10 @@ export function formatTimestamp(unixtime: number) {
   const currentYear = new Date().getFullYear()
 
   if (year < currentYear) {
-    return `${month} ${day} ${year}`
+    return `${month} ${day > 9 ? day : '0' + day} ${year}`
   } else {
-    return `${month} ${day} ${hour}:${min}`
+    return `${month} ${day > 9 ? day : '0' + day} ${hour > 9 ? hour : '0' + hour}:${
+      min > 9 ? min : '0' + min
+    }`
   }
 }

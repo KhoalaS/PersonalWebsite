@@ -159,8 +159,15 @@ async function chat(input: string) {
             <p v-if="line.path" class="text-white">{{ ':~' + line.path }}</p>
             <p v-else class="text-white">:~$</p>
           </div>
-          <div v-else class="text-white">
-            {{ line.content }}
+          <textarea
+            v-else-if="line.content.split('\n').length > 1"
+            spellcheck="false"
+            v-model="line.content"
+            :rows="line.content.split('\n').length"
+            class="block bg-black h-fit text-white w-full overflow-hidden bg-opacity-0 resize-none focus:outline-none"
+          ></textarea>
+          <div v-else>
+            <p class="text-white">{{ line.content }}</p>
           </div>
         </div>
       </div>
