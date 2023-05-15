@@ -8,31 +8,7 @@ import lain from '@/assets/gifs/lain.gif'
 import cdsidebanner from '@/assets/gifs/musiclargesidebanner.gif'
 import ns from '@/assets/gifs/ns.gif'
 import blacklagoon from '@/assets/gifs/blacklagoon.gif'
-import { ref } from 'vue'
-const ad_4 = ref<HTMLElement | null>(null)
 
-var startPosX = 0
-var startPosY = 0
-var isDragging = false
-
-function mousedown(event: MouseEvent) {
-  startPosX = event.clientX - ad_4.value.offsetLeft
-  startPosY = event.clientY
-  isDragging = true
-}
-
-document.onmousemove = (event) => {
-  if (isDragging) {
-    var mouseX = event.clientX
-    var mouseY = event.clientY
-    ad_4.value.style.left = mouseX - startPosX + 'px'
-    ad_4.value.style.top = mouseY - startPosY + 'px'
-  }
-}
-
-document.onmouseup = () => {
-  isDragging = false
-}
 </script>
 
 <template>
@@ -50,8 +26,6 @@ document.onmouseup = () => {
           <div
             class="crt"
             ref="ad_4"
-            @mousedown="(event) => mousedown(event)"
-            @dragstart="(e) => e.preventDefault()"
           >
             <img :src="blacklagoon" />
           </div>
