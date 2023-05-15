@@ -227,15 +227,13 @@ function test(args: string[]) {
 function handleInput(line: string) {
   if (output != undefined && inputLine != undefined) {
     // TODO properly grab redirects
-    let redirects = line.split('>')
-    const mainArg = redirects.splice(0, 1)[0].trim()
-
-    const args = mainArg.split(' ')
+    const allArgs = getRedirects(line)
+    let redirects = allArgs.redirects
+    const args = allArgs.args
     const command = args.splice(0, 1)[0]
     let output: OutputLine | null = null
 
     if (redirects.length > 0) {
-      redirects = redirects.map((elem) => elem.trim())
       std.out = redirects
     }
 
@@ -441,6 +439,17 @@ function touch(args: string[]) {
     }
   }
   return output
+}
+
+function getRedirects(input: string) {
+  const pattern = /(>[\s]*[^>\s]*[\s]*)/gm
+  const redirects: string[] = []
+  let redirectMatch = input.match(pattern)
+  if (redirectMatch) {
+    redirectMatch.forEach((elem) => redirects.push(elem.substring(1).trim()))
+  }
+  const args = input.replace(pattern, ' ').split(" ").filter(elem => elem.length > 0)
+  return { args, redirects }
 }
 
 function cat(args: string[]) {
