@@ -224,15 +224,20 @@ function test(args: string[]) {
   console.log(ret)
 }
 
-// TODO use recursion to implement > redirect
 function handleInput(line: string) {
   if (output != undefined && inputLine != undefined) {
-    const redirects = line.split('>')
+    // TODO properly grab redirects
+    let redirects = line.split('>')
     const mainArg = redirects.splice(0, 1)[0].trim()
 
     const args = mainArg.split(' ')
     const command = args.splice(0, 1)[0]
     let output: OutputLine | null = null
+
+    if (redirects.length > 0) {
+      redirects = redirects.map((elem) => elem.trim())
+      std.out = redirects
+    }
 
     switch (command) {
       case 'clear':
@@ -262,14 +267,10 @@ function handleInput(line: string) {
         test(args)
         break
     }
+    std.in = ['0']
+    std.out = ['1']
+    std.err = ['2']
     console.log(output)
-    redirects.forEach((elem) => {
-      if (output != null) {
-        redirect(elem.trim(), output)
-      } else {
-        redirect(elem.trim(), { type: 'output', content: '' })
-      }
-    })
     sendPreamble()
   }
 }
@@ -300,7 +301,32 @@ function redirect(target: string, output: OutputLine) {
 }
 
 function send(type: string, content: string, path?: string): OutputLine {
-  output.value.push({ type, content, path })
+  switch (type) {
+    case 'error':
+      if (std.err.includes('2')) {
+        output.value.push({ type, content, path })
+      } else {
+        std.err.forEach((elem) => {
+          redirect(elem, { type, content, path })
+        })
+      }
+      break
+    case 'output':
+      if (std.out.includes('1')) {
+        output.value.push({ type, content, path })
+      } else {
+        std.out.forEach((elem) => {
+          redirect(elem, { type, content, path })
+        })
+      }
+      break
+    case 'input':
+      output.value.push({ type, content, path })
+      break
+    case 'preamble':
+      output.value.push({ type, content, path })
+      break
+  }
   return { type, content, path }
 }
 
