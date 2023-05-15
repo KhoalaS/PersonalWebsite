@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Filetype, type OutputLine, type FileExist, File } from '@/Types'
-import { initCustomFormatter, inject } from 'vue'
+import { inject } from 'vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
 import { formatTimestamp } from '@/DateLib'
 import catMock from '@/mockScripts/cat.json'
@@ -12,11 +12,15 @@ const props = defineProps({
   }
 })
 
+const std = {
+  in: ['0'],
+  out: ['1'],
+  err: ['2']
+}
+
 const output = inject(shellOutputKey)!
 const inputLine = inject(shellInputKey)!
-const preamble: OutputLine = { type: 'preamble', content: '' }
 
-const fontSize = 1.25
 const width = inject(shellWidthKey)
 
 let cwd = new File(Filetype.folder, '/', Date.now())
