@@ -26,9 +26,7 @@ Meine persönliche Website
 ### I/O Functions
 
 - [ ] redirect >,<, >>
-  -  >
-     - [ ] only redirect stdout
-     - [ ] multiple OutputLines for redirect Function
-     - [ ] "real" redirect 
-       - probably do the actual push in the send method at the very end in handleinput
+  -  [x] >
+  -  [ ] <
+  -  [ ] >>
 - [ ] pipe |
