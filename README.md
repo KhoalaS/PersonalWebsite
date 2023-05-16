@@ -27,6 +27,6 @@ Meine persönliche Website
 
 - [ ] redirect >,<, >>
   -  [x] >
-  -  [ ] <
+  -  [x] <
   -  [ ] >>
 - [ ] pipe |

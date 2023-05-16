@@ -228,7 +228,22 @@ function handleInput(line: string) {
   if (output != undefined && inputLine != undefined) {
     // TODO properly grab redirects
     const allArgs = getRedirects(line)
+    console.log(allArgs)
+
     let redirects = allArgs.redirects
+    let inputRedirects = allArgs.inputRedirects
+    let pipes = allArgs.pipes
+    let appends = allArgs.appends
+
+    if (
+      redirects.includes('error') ||
+      inputRedirects.includes('error') ||
+      pipes.includes('error') ||
+      appends.includes('error')
+    ) {
+      return sendPreamble()
+    }
+
     const args = allArgs.args
     const command = args.splice(0, 1)[0]
     let output: OutputLine | null = null
@@ -236,6 +251,18 @@ function handleInput(line: string) {
     if (redirects.length > 0) {
       std.out = redirects
     }
+
+    if (inputRedirects.length > 0) {
+      inputRedirects.forEach((elem) => {
+        const fileExists = find(elem, cwd)
+        if (fileExists.exist) {
+          args.push(fileExists.file!.text!)
+        }
+      })
+    }
+
+    // TODO: pipes will be hard cause we compute the
+    // whole command at once and not sequential
 
     switch (command) {
       case 'clear':
@@ -442,14 +469,71 @@ function touch(args: string[]) {
 }
 
 function getRedirects(input: string) {
-  const pattern = /(>[\s]*[^>\s]*[\s]*)/gm
+  const redirectPattern = /(>[\s]*[^>\s|<]*[\s]*)/gm
+  const inputRedirectPattern = /(<[\s]*[^>\s|<]*[\s]*)/gm
+  const pipePattern = /(\|[\s]*[^>\s|<]*[\s]*)/gm
+  const appendPattern = /(>>[\s]*[^>\s|<]*[\s]*)/gm
+
   const redirects: string[] = []
-  let redirectMatch = input.match(pattern)
-  if (redirectMatch) {
-    redirectMatch.forEach((elem) => redirects.push(elem.substring(1).trim()))
+  const pipes: string[] = []
+  const inputRedirects: string[] = []
+  const appends: string[] = []
+
+  let pipeMatch = input.match(pipePattern)
+  if (pipeMatch) {
+    pipeMatch.forEach((elem) => {
+      const val = elem.substring(1).trim()
+      if (val.length == 0) {
+        pipes.push('error')
+      } else {
+        pipes.push(val)
+      }
+    })
   }
-  const args = input.replace(pattern, ' ').split(" ").filter(elem => elem.length > 0)
-  return { args, redirects }
+
+  let appendMatch = input.match(appendPattern)
+  if (appendMatch) {
+    appendMatch.forEach((elem) => {
+      const val = elem.substring(1).trim()
+      if (val.length == 0) {
+        appends.push('error')
+      } else {
+        appends.push(val)
+      }
+    })
+  }
+
+  let redirectMatch = input.match(redirectPattern)
+  if (redirectMatch) {
+    redirectMatch.forEach((elem) => {
+      const val = elem.substring(1).trim()
+      if (val.length == 0) {
+        redirects.push('error')
+      } else {
+        redirects.push(val)
+      }
+    })
+  }
+
+  let inputRedirectMatch = input.match(inputRedirectPattern)
+  if (inputRedirectMatch) {
+    inputRedirectMatch.forEach((elem) => {
+      const val = elem.substring(1).trim()
+      if (val.length == 0) {
+        inputRedirects.push('error')
+      } else {
+        inputRedirects.push(val)
+      }
+    })
+  }
+
+  const args = input
+    .replace(redirectPattern, ' ')
+    .replace(inputRedirectPattern, ' ')
+    .replace(pipePattern, ' ')
+    .split(' ')
+    .filter((elem) => elem.length > 0)
+  return { args, redirects, pipes, inputRedirects, appends }
 }
 
 function cat(args: string[]) {
