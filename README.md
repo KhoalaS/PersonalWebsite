@@ -25,8 +25,10 @@ Meine persönliche Website
 
 ### I/O Functions
 
+Right now the order of redirects is ignored
+
 - [ ] redirect >,<, >>
-  -  [x] >
-  -  [x] <
-  -  [ ] >>
+  - [x] >
+  - [x] <
+  - [ ] > >
 - [ ] pipe |
