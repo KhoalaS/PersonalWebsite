@@ -1,7 +1,5 @@
 @import './base.css';
-
-@tailwind base;
-@tailwind components;
+@import './98.css';
 @tailwind utilities;
 
 @keyframes color-change {

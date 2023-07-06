@@ -2,8 +2,9 @@
 import { onMounted, onUpdated, provide, ref } from 'vue'
 import type { Ref } from 'vue'
 import type { OutputLine } from '@/Types'
-import Filesystem from './Filesystem.vue'
+import Filesystem from '@/components/Filesystem.vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
+import FileTree from '@/components/FileTree.vue'
 
 const preamble = { type: 'preamble', content: '' }
 const output: Ref<Array<OutputLine>> = ref([])
@@ -62,13 +63,7 @@ async function keyPress(event: KeyboardEvent) {
     output.value.push({ type: 'input', content: `${inputLine.value.trim()}` })
     inputLine.value = ''
 
-    if (line.split(' ')[0] == 'chat') {
-      const answer = await chat(line.substring(5))
-      output.value.push({ type: 'chat', content: answer })
-      return sendPreamble()
-    } else {
-      fs.value?.handleInput(line)
-    }
+    fs.value?.handleInput(line)
   }
 }
 
@@ -114,75 +109,59 @@ function sendPreamble() {
   output.value.push(preamble)
 }
 
-//TODO handle code in these ``` with regexp?
-async function chat(input: string) {
-  const data = {
-    model: 'gpt-3.5-turbo',
-    messages: [
-      { role: 'system', content: 'You are a helpful assistant.' },
-      { role: 'user', content: input.trim() }
-    ]
-  }
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${openaiKey}`
-    },
-    body: JSON.stringify(data)
-  })
-  const answer = await response.json()
-
-  return answer.choices[0].message.content
-}
 </script>
 
 <template>
-  <main class="crt">
-    <Filesystem :user="username" ref="fs"></Filesystem>
-    <div
-      id="shell"
-      ref="shellContainer"
-      @click="(event) => prevent(event)"
-      class="flex flex-col h-[28rem] w-[50vw] border-2 border-black bg-black bg-opacity-60 overflow-y-scroll selection:bg-white selection:text-black"
-    >
-      <div @click="(event) => prevent(event)" class="px-2 active:outline-none">
-        <div v-for="line in output" class="text-xl font-terminess">
-          <div v-if="line.type == 'preamble'" class="flex gap-[2px]">
-            <p class="text-yellow-500 selection:bg-yellow-500 selection:text-black">
-              {{ props.username }}
-            </p>
-            <p class="text-white">@</p>
-            <p class="text-purple-500 selection:bg-purple-500 selection:text-black">
-              {{ props.host }}
-            </p>
-            <p v-if="line.path" class="text-white">{{ ':~' + line.path }}</p>
-            <p v-else class="text-white">:~$</p>
-          </div>
-          <textarea
-            v-else-if="line.content.split('\n').length > 1"
-            spellcheck="false"
-            v-model="line.content"
-            :rows="line.content.split('\n').length"
-            class="block bg-black h-fit text-white w-full overflow-hidden bg-opacity-0 resize-none focus:outline-none"
-          ></textarea>
-          <div v-else>
-            <p class="text-white">{{ line.content }}</p>
+  <div class="flex w-full">
+    <ul class="tree-view w-fit">
+      <FileTree :root="fs?.cwd.content" :name="fs?.cwd.name" :filetype="fs?.cwd.type"></FileTree>
+    </ul>
+    <main class="crt w-full">
+      <Filesystem :user="username" ref="fs"></Filesystem>
+      <div
+        id="shell"
+        ref="shellContainer"
+        @click="(event) => prevent(event)"
+        class="flex flex-col shadow-lg h-[28rem] border-2 border-black bg-black bg-opacity-60 overflow-y-scroll selection:bg-white selection:text-black"
+      >
+        <div @click="(event) => prevent(event)" class="px-2 active:outline-none hover:cursor-text">
+          <div v-for="line in output" class="text-xl font-terminess">
+            <div v-if="line.type == 'preamble'" class="flex gap-[2px]">
+              <p class="text-yellow-500 selection:bg-yellow-500 selection:text-black">
+                {{ props.username }}
+              </p>
+              <p class="text-white">@</p>
+              <p class="text-purple-300 selection:bg-purple-500 selection:text-black">
+                {{ props.host }}
+              </p>
+              <p v-if="line.path" class="text-white">{{ ':~' + line.path }}</p>
+              <p v-else class="text-white">:~$</p>
+            </div>
+            <textarea
+              v-else-if="line.content.split('\n').length > 1"
+              spellcheck="false"
+              v-model="line.content"
+              :rows="line.content.split('\n').length"
+              class="block bg-black h-fit text-white text-xl font-terminess w-full overflow-hidden bg-opacity-0 resize-none focus:outline-none shadow-none"
+            ></textarea>
+            <div v-else>
+              <p class="text-white">{{ line.content }}</p>
+            </div>
           </div>
         </div>
+        <textarea
+          spellcheck="false"
+          ref="inputRef"
+          autocomplete="on"
+          @keydown="(event) => keyDown(event)"
+          @keypress="(event) => keyPress(event)"
+          class="mb-2 min-h-[1lh] text-white text-xl font-terminess h-full bg-black bg-opacity-0 focus:outline-none px-2 z-10 caret-white overflow-hidden shadow-none resize-none"
+          v-model="inputLine"
+          type="text"
+        ></textarea>
       </div>
-      <textarea
-        spellcheck="false"
-        ref="inputRef"
-        autocomplete="on"
-        @keydown="(event) => keyDown(event)"
-        @keypress="(event) => keyPress(event)"
-        class="min-h-[1lh] text-white text-xl font-terminess h-full bg-black bg-opacity-0 focus:outline-none px-2 z-10 caret-white overflow-auto resize-none"
-        v-model="inputLine"
-        type="text"
-      ></textarea>
-    </div>
-  </main>
+    </main>
+  </div>
 </template>
 
 <style scoped>
@@ -194,5 +173,9 @@ async function chat(input: string) {
 #shell {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+textarea {
+  border: none !important;
 }
 </style>

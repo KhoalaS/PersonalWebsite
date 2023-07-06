@@ -1,0 +1,88 @@
+{
+    "kind": "youtube#videoListResponse",
+    "etag": "7NWWYjqNLJOV1AD_oiI5jU5c0wE",
+    "items": [
+        {
+            "kind": "youtube#video",
+            "etag": "kf2WGVuMOr989WShXDMe5bMcWMQ",
+            "id": "wnVAU1LDrXg",
+            "snippet": {
+                "publishedAt": "2023-05-23T02:03:33Z",
+                "channelId": "UCeeFfhMcJa1kjtfZAGskOCA",
+                "title": "Use Crypto, Get Tracked",
+                "description": "Save 15% with our offer code techlinked at https://Vessi.com/TechLinked\n\n►► LTX 2023 TICKETS AVAILABLE NOW: https://lmg.gg/ltx23\n\n► GET MERCH: https://lttstore.com\n► GET EXCLUSIVE CONTENT ON FLOATPLANE: https://lmg.gg/lttfloatplane\n► LISTEN TO THE TECH NEWS: https://lmg.gg/TechLinkedPodcast\n► SPONSORS, AFFILIATES, AND PARTNERS: https://lmg.gg/partners\n► OUR PODCAST GEAR: https://lmg.gg/podcastgear\n\nNEWS SOURCES: https://lmg.gg/kJCSq\n---------------------------------------------------\nTimestamps:\n0:00 EU regulates crypto to be traceable\n1:15 ASUS router connectivity issues\n2:26 War Thunder backlash\n3:37 Vessi Footwear\n4:28 QUICK BITS\n4:39 Developer Rusty Lake loses Discord name\n5:05 Twitter bug revives deleted tweets\n5:40 China bans Micron from projects\n6:17 buy booze with Amazon palm scanning\n6:43 Build houses with diapers\n\nFOLLOW US ELSEWHERE\n---------------------------------------------------  \nTwitter: http://twitter.com/TechLinkedYT\nInstagram: http://instagram.com/TechLinkedYT\nFacebook: http://facebook.com/TechLinked\nTikTok: https://www.tiktok.com/@techlinkedyt",
+                "thumbnails": {
+                    "default": {
+                        "url": "https://i.ytimg.com/vi/wnVAU1LDrXg/default.jpg",
+                        "width": 120,
+                        "height": 90
+                    },
+                    "medium": {
+                        "url": "https://i.ytimg.com/vi/wnVAU1LDrXg/mqdefault.jpg",
+                        "width": 320,
+                        "height": 180
+                    },
+                    "high": {
+                        "url": "https://i.ytimg.com/vi/wnVAU1LDrXg/hqdefault.jpg",
+                        "width": 480,
+                        "height": 360
+                    },
+                    "standard": {
+                        "url": "https://i.ytimg.com/vi/wnVAU1LDrXg/sddefault.jpg",
+                        "width": 640,
+                        "height": 480
+                    },
+                    "maxres": {
+                        "url": "https://i.ytimg.com/vi/wnVAU1LDrXg/maxresdefault.jpg",
+                        "width": 1280,
+                        "height": 720
+                    }
+                },
+                "channelTitle": "TechLinked",
+                "tags": [
+                    "Linus",
+                    "LinusTechTips",
+                    "tech news",
+                    "Riley Murdock",
+                    "tech",
+                    "news",
+                    "Riley",
+                    "EU",
+                    "Europe",
+                    "European Union",
+                    "EU regulations",
+                    "European Commission",
+                    "GDPR",
+                    "EU crypto",
+                    "trace crypto",
+                    "is crypto traceable",
+                    "traceable crypto",
+                    "track crypto",
+                    "crypto tracking",
+                    "crypto regulation",
+                    "crypto laws",
+                    "bitcoin",
+                    "ethereum",
+                    "blockchain"
+                ],
+                "categoryId": "28",
+                "liveBroadcastContent": "none",
+                "localized": {
+                    "title": "Use Crypto, Get Tracked",
+                    "description": "Save 15% with our offer code techlinked at https://Vessi.com/TechLinked\n\n►► LTX 2023 TICKETS AVAILABLE NOW: https://lmg.gg/ltx23\n\n► GET MERCH: https://lttstore.com\n► GET EXCLUSIVE CONTENT ON FLOATPLANE: https://lmg.gg/lttfloatplane\n► LISTEN TO THE TECH NEWS: https://lmg.gg/TechLinkedPodcast\n► SPONSORS, AFFILIATES, AND PARTNERS: https://lmg.gg/partners\n► OUR PODCAST GEAR: https://lmg.gg/podcastgear\n\nNEWS SOURCES: https://lmg.gg/kJCSq\n---------------------------------------------------\nTimestamps:\n0:00 EU regulates crypto to be traceable\n1:15 ASUS router connectivity issues\n2:26 War Thunder backlash\n3:37 Vessi Footwear\n4:28 QUICK BITS\n4:39 Developer Rusty Lake loses Discord name\n5:05 Twitter bug revives deleted tweets\n5:40 China bans Micron from projects\n6:17 buy booze with Amazon palm scanning\n6:43 Build houses with diapers\n\nFOLLOW US ELSEWHERE\n---------------------------------------------------  \nTwitter: http://twitter.com/TechLinkedYT\nInstagram: http://instagram.com/TechLinkedYT\nFacebook: http://facebook.com/TechLinked\nTikTok: https://www.tiktok.com/@techlinkedyt"
+                },
+                "defaultAudioLanguage": "en"
+            },
+            "statistics": {
+                "viewCount": "182873",
+                "likeCount": "13475",
+                "favoriteCount": "0",
+                "commentCount": "738"
+            }
+        }
+    ],
+    "pageInfo": {
+        "totalResults": 1,
+        "resultsPerPage": 1
+    }
+}

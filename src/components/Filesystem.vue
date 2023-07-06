@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Filetype, type OutputLine, type FileExist, File } from '@/Types'
-import { inject } from 'vue'
+import { inject, reactive } from 'vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
 import { formatTimestamp } from '@/DateLib'
 import catMock from '@/mockScripts/cat.json'
@@ -23,7 +23,7 @@ const inputLine = inject(shellInputKey)!
 
 const width = inject(shellWidthKey)
 
-let cwd = new File(Filetype.folder, '/', Date.now())
+let cwd = reactive(new File(Filetype.folder, '/', Date.now()))
 
 initFs(cwd)
 
@@ -38,7 +38,6 @@ function echo(line: string) {
   return send('output', line)
 }
 
-// TODO add autocomplete
 function cd(args: string[]) {
   let output = null
   if (args.length > 1) {
@@ -224,6 +223,7 @@ function test(args: string[]) {
   console.log(ret)
 }
 
+// Pipes will require whole rewrite of parse/execute logic
 function handleInput(line: string) {
   if (output != undefined && inputLine != undefined) {
     // TODO properly grab redirects
@@ -295,7 +295,6 @@ function handleInput(line: string) {
     std.in = ['0']
     std.out = ['1']
     std.err = ['2']
-    console.log(output)
     sendPreamble()
   }
 }
@@ -309,8 +308,8 @@ function redirect(target: string, output: OutputLine) {
     let updated = false
     for (var j = 0; j < fileExists.file!.content.length; j++) {
       if (fileExists.file!.content[j].name == dest) {
-        fileExists.file!.last = Date.now()
-        fileExists.file!.text = output.content
+        fileExists.file!.content[j].last = Date.now()
+        fileExists.file!.content[j].text = output.content
         updated = true
         break
       }
@@ -536,26 +535,16 @@ function getRedirects(input: string) {
   return { args, redirects, pipes, inputRedirects, appends }
 }
 
+// this is stupid af
 function cat(args: string[]) {
   let output = null
-  const parsedArgs = parseArgs(args)
-  parsedArgs.folders.forEach((elem) => {
-    const found = find(elem, cwd)
-    if (found.exist) {
-      if (found.file!.type == Filetype.file) {
-        output = send('output', found.file!.text!)
-      } else {
-        output = send('error', `cat: ${elem}: ist in Verzeichnis`)
-      }
-    } else {
-      output = send('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`)
-    }
-  })
+  eval(catMock.script.join('\n'))
   return output
 }
 
 defineExpose({
-  handleInput
+  handleInput,
+  cwd
 })
 </script>
 
