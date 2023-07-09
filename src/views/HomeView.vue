@@ -85,7 +85,7 @@ function minimize(key: string){
     </div>
     <div :class="taskbarClass">
       <button id="start" class="flex items-center h-full w-fit">
-        <img class="h-[24px]" src="windows.ico" />
+        <img class="h-[24px]" src="/windows.ico" />
         <p class="font-bold">Start</p>
       </button>
       <TaskbarDivider></TaskbarDivider>
