@@ -100,7 +100,7 @@ function clear() {
 }
 
 function ls(args: string[]) {
-  let output = null
+  let output
   const parsedArgs = parseArgs(args)
   const long = parsedArgs.options.includes('l')
 
@@ -203,7 +203,7 @@ function find(input: string, start: File): FileExist {
     }
   }
   const file = path[0]
-  let fileObj = null
+  let fileObj
   for (var i = 0; i < start.content.length; i++) {
     if (start.content[i].name == file) {
       fileObj = start.content[i]
@@ -407,7 +407,7 @@ function recCreateFolder(input: string, start: File, p: boolean): number {
     path.splice(0, 1)
     return recCreateFolder(path.join('/'), start.parent!, p)
   }
-  let found = null
+  let found
   for (var i = 0; i < start.content.length; i++) {
     if (start.content[i].name == path[0]) {
       found = start.content[i]
@@ -537,8 +537,21 @@ function getRedirects(input: string) {
 
 // this is stupid af
 function cat(args: string[]) {
-  let output = null
-  eval(catMock.script.join('\n'))
+  let output
+  const parsedArgs = parseArgs(args);
+      console.log(args);
+      parsedArgs.folders.forEach((elem) => {
+        const found = find(elem, cwd);
+        if (found.exist) {
+          if (found.file?.type == Filetype.file) {
+            output = send('output', found.file.text!);
+          } else {
+            output = send('error', `cat: ${elem}: ist in Verzeichnis`);
+          }
+        } else {
+          output = send('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`);
+        }
+      })
   return output
 }
 

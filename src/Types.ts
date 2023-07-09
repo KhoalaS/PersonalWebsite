@@ -21,7 +21,7 @@ export class File {
 
   getAbsolutePath() {
     let _parent = this.parent
-    const parts = []
+    const parts: string[] = new Array()
     parts.push(this.name)
     while (_parent != undefined) {
       parts.push(_parent.name)
