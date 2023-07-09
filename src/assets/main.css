@@ -1,5 +1,4 @@
 @import './base.css';
-@import './98.css';
 @tailwind utilities;
 
 @keyframes color-change {
@@ -27,3 +26,14 @@
   font-family: 'Terminess';
   src: url('./terminess_mono.ttf');
 }
+
+@font-face {
+  font-family: 'MS Sans Serif';
+  src: url('./ms_sans_serif.woff2');
+}
+
+@font-face {
+  font-family: 'MS Sans Serif Bold';
+  src: url('./ms_sans_serif_bold.woff2');
+}
+

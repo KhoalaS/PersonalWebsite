@@ -4,7 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        terminess: ['Terminess', 'mono']
+        terminess: ['Terminess', 'mono'],
+        mssans: ['MS Sans Serif', 'serif'],
+        mssansbold: ['MS Sans Serif Bold', 'serif']
       }
     }
   },
