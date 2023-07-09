@@ -1,135 +1,72 @@
 <script setup lang="ts">
-import Shell from '@/components/Shell.vue'
+import FishWindow from "@/components/FishWindow.vue"
+import ProfileWindow from "@/components/ProfileWindow.vue"
+import TaskbarDivider from "@/components/TaskbarDivider.vue"
+import Thingy from "@/components/Thingy.vue"
 import ie from '@/assets/gifs/ie.gif'
 import ns from '@/assets/gifs/ns.gif'
 import css from '@/assets/css.gif'
 import html from '@/assets/w3c.png'
-import { inject, onMounted, ref } from 'vue'
+import { provide, ref, onMounted } from 'vue'
 import { parentKey } from '@/Keys'
 
-var container = inject(parentKey)
-var active = false
-var currentX: number
-var currentY: number
-var initialX: number
-var initialY: number
-var xOffset = 0
-var yOffset = 0
+const parent = ref<HTMLElement|null>(null)
+const fishWindow = ref<typeof FishWindow |null>(null)
+const profileWindow = ref<typeof ProfileWindow|null>(null)
 
-const dragItem = ref<HTMLElement|null>(null)
-const dragTitleBar = ref<HTMLElement|null>(null) 
+provide(parentKey, parent)
+
+
+const height = ref(window.innerHeight)
+const time = ref(Date.now())
+
+console.log(window.innerHeight)
+console.log(window.outerHeight)
+
+const taskbarClass = ref(
+  `taskbar flex w-full gap-1 fixed p-1 top-[${height.value-36}px] left-0 z-10 w-full h-[36px] bg-[silver] border-2 border-red-500 self-end`
+)
 
 onMounted(() => {
-  container?.value?.addEventListener('touchstart', dragStart, false)
-  container?.value?.addEventListener('touchend', dragEnd, false)
-  container?.value?.addEventListener('touchmove', drag, false)
-
-  container?.value?.addEventListener('mousedown', dragStart, false)
-  container?.value?.addEventListener('mouseup', dragEnd, false)
-  container?.value?.addEventListener('mousemove', drag, false)
+  height.value = window.innerHeight
 })
 
-function dragStart(e) {
-  if (e.type === 'touchstart') {
-    initialX = e.touches[0].clientX - xOffset
-    initialY = e.touches[0].clientY - yOffset
-  } else {
-    initialX = e.clientX - xOffset
-    initialY = e.clientY - yOffset
-  }
-
-  if (e.target === dragTitleBar.value) {
-    active = true
-    console.log(e.target)
-  }
-  console.log("dragstart")
+onresize = (e) => {
+  height.value = window.innerHeight
 }
 
-function dragEnd(e) {
-  initialX = currentX
-  initialY = currentY
-
-  active = false
+function updateTime(){
+  time.value += 5000
 }
 
-function drag(e) {
-  if (active) {
-    e.preventDefault()
+setInterval(updateTime, 5000)
 
-    if (e.type === 'touchmove') {
-      currentX = e.touches[0].clientX - initialX
-      currentY = e.touches[0].clientY - initialY
-    } else {
-      currentX = e.clientX - initialX
-      currentY = e.clientY - initialY
-    }
-
-    xOffset = currentX
-    yOffset = currentY
-
-    setTranslate(currentX, currentY, dragItem.value)
+function minimize(key: string){
+  switch(key){
+    case "fish":
+      fishWindow.value?.minimize()
+      break;
+    case "profile":
+      profileWindow.value?.minimize()
+      break
   }
-}
-
-function setTranslate(xPos:number, yPos: number ,el: HTMLElement|null) {
-  if(el == null){
-    return
-  }
-  el.style.transform = 'translate3d(' + xPos + 'px, ' + yPos + 'px, 0)'
 }
 </script>
 
 <template>
-  <main class="mx-auto flex gap-4">
+  <main ref="parent" class="mx-auto flex gap-4 h-full">
     <div class="w-[40vw] flex flex-col gap-2">
-      <div id="profile" class="window">
-        <div class="title-bar h-[20px]">
-          <div class="flex gap-1 title-bar-text">
-            <div class="flex items-center">
-              <img height="16" src="/msn3.ico" />
-            </div>
-            Profile
-          </div>
-          <div class="title-bar-controls">
-            <button aria-label="Minimize"></button>
-            <button aria-label="Maximize"></button>
-            <button aria-label="Close"></button>
-          </div>
-        </div>
-        <div class="window-body flex gap-2">
-          <img class="w-[120px] h-[120px] rounded" src="/pfp_edit.jpg" />
-          <div>
-            <p>
-              o Hello my name is Khoa. I like programming, gaming, reverse engineering (still nub
-              tho).
-            </p>
-            <label class="">My programming interests:</label>
-            <ul>
-              <li>Vue</li>
-              <li>Flutter</li>
-              <li>Java</li>
-              <li>Python</li>
-              <li>Android RE</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div ref="dragItem" class="window">
-        <div ref="dragTitleBar" class="title-bar h-[20px] touch-none select-none">
-          <div class="flex gap-1 title-bar-text">
-            <div class="flex items-center">
-              <img height="16" src="/console_prompt.ico" />
-            </div>
-            fish
-          </div>
-          <div class="title-bar-controls">
-            <button aria-label="Minimize"></button>
-            <button aria-label="Maximize"></button>
-            <button aria-label="Close"></button>
-          </div>
-        </div>
-        <Shell username="khoa" host="brave"></Shell>
-      </div>
+      <ProfileWindow ref="profileWindow"></ProfileWindow>
+      <FishWindow ref="fishWindow"></FishWindow>
+    </div>
+    <div class="w-[180px]">
+      <iframe
+        width="180"
+        height="180"
+        style="border: none"
+        src="https://dimden.neocities.org/navlink/"
+        name="neolink"
+      ></iframe>
       <div class="flex flex-col items-center gap-3">
         <div class="font-serif">Page best viewed with:</div>
         <div class="flex">
@@ -146,17 +83,52 @@ function setTranslate(xPos:number, yPos: number ,el: HTMLElement|null) {
         </div>
       </div>
     </div>
-    <div class="w-[180px]">
-      <iframe
-        width="180"
-        height="180"
-        style="border: none"
-        src="https://dimden.neocities.org/navlink/"
-        name="neolink"
-      ></iframe>
-      <ul>
-        <li>Hello</li>
-      </ul>
-    </div>
+    <div :class="taskbarClass">
+      <button id="start" class="flex items-center h-full w-fit">
+        <img class="h-[24px]" src="windows.ico" />
+        <p class="font-bold">Start</p>
+      </button>
+      <TaskbarDivider></TaskbarDivider>
+      <Thingy></Thingy>
+      <div class="w-[136px]"></div>
+      <TaskbarDivider></TaskbarDivider>
+      <Thingy></Thingy>
+      <button @click="minimize('fish')" class="task flex items-center gap-1 w-[160px] text-left text-[14px]">
+        <div class="flex items-center">
+          <img height="24" src="/console_prompt.ico" />
+        </div>
+        fish
+      </button>
+      <button @click="minimize('profile')" class="task flex items-center gap-1 w-[160px] text-left text-[14px]">
+        <div class="flex items-center">
+          <img height="24" src="/msn3.ico" />
+        </div>
+        Profile
+      </button>
+      <TaskbarDivider class="ml-auto"></TaskbarDivider>
+      <div class="status-bar">
+        <p class="status-bar-field flex font-mssans px-2 items-center">
+          <div class="flex items-center">
+            <img height="22" src="/loudspeaker_rays.ico">
+          </div>
+          <p class="pl-2">
+            {{ (new Date(time).toLocaleTimeString('de-DE',{hour:"2-digit", minute:"2-digit"})).replace(":", ": ") }}
+
+          </p>
+        </p>
+      </div>
+  </div>
   </main>
 </template>
+<style scoped>
+.taskbar {
+  box-shadow: inset 0px 1px #fff, inset 0px 2px #dfdfdf;
+}
+#start {
+  padding: 0px 4px;
+  min-width: 0px !important;
+}
+.task {
+  padding-left: 4px !important;
+}
+</style>
