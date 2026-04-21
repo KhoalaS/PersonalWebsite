@@ -1,28 +1,27 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue'
+import { inject, onMounted, ref, useTemplateRef } from 'vue'
 import { parentKey } from '@/Keys'
-import Shell from './Shell.vue'
 
-var container = inject(parentKey)
-var active = false
-var currentX: number
-var currentY: number
-var initialX: number
-var initialY: number
-var xOffset = 0
-var yOffset = 0
+const container = inject(parentKey)!
+let active = false
+let currentX: number
+let currentY: number
+let initialX: number
+let initialY: number
+let xOffset = 0
+let yOffset = 0
 
-const dragItem = ref<HTMLElement|null>(null)
-const dragTitleBar = ref<HTMLElement|null>(null) 
+const dragItemRef = useTemplateRef('dragItem')
+const dragTitleBarRef = useTemplateRef('dragTitleBar')
 
 const open = ref(true)
 
-function minimize(){
+function minimize() {
   open.value = !open.value
-  if(open.value){
-    dragItem.value!.style.display = ""
+  if (open.value) {
+    dragItemRef.value!.style.display = ''
   } else {
-    dragItem.value!.style.display = "none"
+    dragItemRef.value!.style.display = 'none'
   }
 }
 
@@ -40,9 +39,9 @@ onMounted(() => {
   container?.value?.addEventListener('mousemove', drag, false)
 })
 
-function dragStart(e) {
+function dragStart(e: MouseEvent | TouchEvent) {
   console.log(e)
-  if (e.type === 'touchstart') {
+  if (e instanceof TouchEvent) {
     initialX = e.touches[0].clientX - xOffset
     initialY = e.touches[0].clientY - yOffset
   } else {
@@ -50,14 +49,14 @@ function dragStart(e) {
     initialY = e.clientY - yOffset
   }
 
-  if (e.target === dragTitleBar.value) {
+  if (e.target === dragTitleBarRef.value) {
     active = true
     console.log(e.target)
   }
-  console.log("dragstart")
+  console.log('dragstart')
 }
 
-function dragEnd(e) {
+function dragEnd(e: MouseEvent | TouchEvent) {
   console.log(e)
 
   initialX = currentX
@@ -66,11 +65,11 @@ function dragEnd(e) {
   active = false
 }
 
-function drag(e) {
+function drag(e: MouseEvent | TouchEvent) {
   if (active) {
     e.preventDefault()
 
-    if (e.type === 'touchmove') {
+    if (e instanceof TouchEvent) {
       currentX = e.touches[0].clientX - initialX
       currentY = e.touches[0].clientY - initialY
     } else {
@@ -81,48 +80,46 @@ function drag(e) {
     xOffset = currentX
     yOffset = currentY
 
-    setTranslate(currentX, currentY, dragItem.value)
+    setTranslate(currentX, currentY, dragItemRef.value)
   }
 }
 
-function setTranslate(xPos:number, yPos: number ,el: HTMLElement|null) {
-  if(el == null){
+function setTranslate(xPos: number, yPos: number, el: HTMLElement | null) {
+  if (el == null) {
     return
   }
   el.style.transform = 'translate3d(' + xPos + 'px, ' + yPos + 'px, 0)'
 }
 </script>
 <template>
- <div ref="dragItem" class="window z-10">
-        <div ref="dragTitleBar" class="title-bar h-[20px]">
-          <div class="flex gap-1 title-bar-text">
-            <div class="flex items-center">
-              <img height="16" src="/msn3.ico" />
-            </div>
-            Profile
-          </div>
-          <div class="title-bar-controls">
-            <button @click="minimize" aria-label="Minimize"></button>
-            <button aria-label="Maximize"></button>
-            <button aria-label="Close"></button>
-          </div>
+  <div ref="dragItem" class="window z-10">
+    <div ref="dragTitleBar" class="title-bar h-[20px]">
+      <div class="flex gap-1 title-bar-text">
+        <div class="flex items-center">
+          <img class="h-4" src="/msn3.ico" />
         </div>
-        <div class="window-body flex gap-2">
-          <img class="w-[120px] h-[120px] rounded" src="/pfp_edit.jpg" />
-          <div>
-            <p>
-              o Hello my name is Khoa. I like programming, gaming, reverse engineering (still nub
-              tho).
-            </p>
-            <label class="">My programming interests:</label>
-            <ul>
-              <li>Vue</li>
-              <li>Flutter</li>
-              <li>Java</li>
-              <li>Python</li>
-              <li>Android RE</li>
-            </ul>
-          </div>
-        </div>
+        Profile
       </div>
+      <div class="title-bar-controls">
+        <button @click="minimize" aria-label="Minimize"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="window-body flex gap-2">
+      <img class="w-[120px] h-[120px] rounded" src="/pfp_edit.jpg" />
+      <div>
+        <p>
+          Hello my name is Khoa. I like programming, gaming, reverse engineering (still nub tho).
+        </p>
+        <label class="">My programming interests:</label>
+        <ul>
+          <li>Vue</li>
+          <li>TypeScript</li>
+          <li>Go</li>
+          <li>Android RE</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </template>

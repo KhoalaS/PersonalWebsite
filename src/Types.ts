@@ -11,7 +11,7 @@ export class File {
   parent?: File
   text?: string
   last: number
-  constructor(type: Filetype, name: string, last: number,parent?: File, text?: string) {
+  constructor(type: Filetype, name: string, last: number, parent?: File, text?: string) {
     this.type = type
     this.name = name
     this.parent = parent
@@ -21,7 +21,7 @@ export class File {
 
   getAbsolutePath() {
     let _parent = this.parent
-    const parts: string[] = new Array()
+    const parts: string[] = []
     parts.push(this.name)
     while (_parent != undefined) {
       parts.push(_parent.name)
@@ -31,7 +31,7 @@ export class File {
   }
 
   getRoot(): File {
-    let _parent = this.parent
+    const _parent = this.parent
     if (_parent == undefined) {
       return this
     }
@@ -39,10 +39,7 @@ export class File {
   }
 }
 
-export enum Filetype {
-  file = 'FILE',
-  folder = 'FOLDER'
-}
+export type Filetype = 'FILE' | 'FOLDER'
 
 export interface FileExist {
   exist: boolean

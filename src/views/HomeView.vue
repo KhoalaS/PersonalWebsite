@@ -7,14 +7,14 @@ import ie from '@/assets/gifs/ie.gif'
 import ns from '@/assets/gifs/ns.gif'
 import css from '@/assets/css.gif'
 import html from '@/assets/w3c.png'
-import { provide, ref, onMounted } from 'vue'
+import { provide, ref, onMounted, useTemplateRef } from 'vue'
 import { parentKey } from '@/Keys'
 
-const parent = ref<HTMLElement|null>(null)
-const fishWindow = ref<typeof FishWindow |null>(null)
-const profileWindow = ref<typeof ProfileWindow|null>(null)
+const parentRef = useTemplateRef("parent")
+const fishWindowRef = useTemplateRef("fishWindow")
+const profileWindowRef = useTemplateRef("profileWindow")
 
-provide(parentKey, parent)
+provide(parentKey, parentRef)
 
 
 const height = ref(window.innerHeight)
@@ -31,7 +31,7 @@ onMounted(() => {
   height.value = window.innerHeight
 })
 
-onresize = (e) => {
+onresize = () => {
   height.value = window.innerHeight
 }
 
@@ -44,17 +44,17 @@ setInterval(updateTime, 5000)
 function minimize(key: string){
   switch(key){
     case "fish":
-      fishWindow.value?.minimize()
+      fishWindowRef.value?.minimize()
       break;
     case "profile":
-      profileWindow.value?.minimize()
+      profileWindowRef.value?.minimize()
       break
   }
 }
 </script>
 
 <template>
-  <main ref="parent" class="mx-auto flex gap-4 h-full">
+  <main ref="parent" class="mx-auto flex gap-4 flex-1">
     <div class="w-[40vw] flex flex-col gap-2">
       <ProfileWindow ref="profileWindow"></ProfileWindow>
       <FishWindow ref="fishWindow"></FishWindow>
@@ -113,7 +113,6 @@ function minimize(key: string){
           </div>
           <p class="pl-2">
             {{ (new Date(time).toLocaleTimeString('de-DE',{hour:"2-digit", minute:"2-digit"})).replace(":", ": ") }}
-
           </p>
         </p>
       </div>

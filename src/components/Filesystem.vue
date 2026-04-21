@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Filetype, type OutputLine, type FileExist, File } from '@/Types'
+import { type Filetype, type OutputLine, type FileExist, File } from '@/Types'
 import { inject, reactive } from 'vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
 import { formatTimestamp } from '@/DateLib'
@@ -23,13 +23,13 @@ const inputLine = inject(shellInputKey)!
 
 const width = inject(shellWidthKey)
 
-let cwd = reactive(new File(Filetype.folder, '/', Date.now()))
+let cwd = reactive(new File('FOLDER', '/', Date.now()))
 
 initFs(cwd)
 
 function initFs(start: File) {
-  const bin = new File(Filetype.folder, 'bin', Date.now(), start)
-  const catScript = new File(Filetype.file, 'cat', Date.now(), bin, catMock.script.join('\n'))
+  const bin = new File('FOLDER', 'bin', Date.now(), start)
+  const catScript = new File('FILE', 'cat', Date.now(), bin, catMock.script.join('\n'))
   bin.content.push(catScript)
   cwd.content.push(bin)
 }
@@ -39,21 +39,20 @@ function echo(line: string) {
 }
 
 function cd(args: string[]) {
-  let output = null
   if (args.length > 1) {
     return send('output', 'Too many args for cd command')
   }
   if (args.length == 0) {
     const root = cwd.getRoot()
     cwd = root
-    return output
+    return null
   }
 
   const input = args[0].trim()
   const fileExists = find(input, cwd)
 
   if (fileExists.exist) {
-    if (fileExists.file!.type == Filetype.file) {
+    if (fileExists.file!.type === 'FILE') {
       return send('error', `cd: '${input}' is not a directory`)
     } else {
       cwd = fileExists.file!
@@ -62,16 +61,16 @@ function cd(args: string[]) {
     return send('error', `cd: The directory '${args[0]}' does not exist`)
   }
 
-  return output
+  return null
 }
 
 function mkdir(args: string[]) {
   const parsedArgs = parseArgs(args)
   const p = parsedArgs.options.includes('p')
-  let output: OutputLine | null = null
+  const output: OutputLine | null = null
 
   parsedArgs.folders.forEach((elem) => {
-    let fileExists = find(elem, cwd)
+    const fileExists = find(elem, cwd)
 
     if (fileExists.exist) {
       return send(
@@ -79,7 +78,7 @@ function mkdir(args: string[]) {
         `mkdir: das Verzeichnis »${elem}“ kann nicht angelegt werden: Die Datei existiert bereits`
       )
     } else if (p) {
-      const exit = recCreateFolder(elem, cwd, true)
+      recCreateFolder(elem, cwd, true)
     } else {
       const exit = recCreateFolder(elem, cwd, false)
       if (exit == -1) {
@@ -100,7 +99,7 @@ function clear() {
 }
 
 function ls(args: string[]) {
-  let output
+  let output: OutputLine | null = null
   const parsedArgs = parseArgs(args)
   const long = parsedArgs.options.includes('l')
 
@@ -112,19 +111,17 @@ function ls(args: string[]) {
     contents.forEach((file) => {
       if (long) {
         let extra = ''
-        if (file.type == Filetype.folder) {
+        if (file.type === 'FOLDER') {
           extra += 'drwxrwxr-x'
         } else {
           extra += '-rw-rw-r--'
         }
         extra += ` ${props.user} ${props.user} ${
-          file.type == Filetype.folder ? '4096' : String(file.text!.length + 1)
-        } ${formatTimestamp(file.last)} ${
-          file.type == Filetype.folder ? file.name + '/' : file.name
-        }`
+          file.type === 'FOLDER' ? '4096' : String(file.text!.length + 1)
+        } ${formatTimestamp(file.last)} ${file.type === 'FOLDER' ? file.name + '/' : file.name}`
         return send('output', extra)
       } else {
-        return send('output', file.type == Filetype.folder ? file.name + '/' : file.name)
+        return send('output', file.type === 'FOLDER' ? file.name + '/' : file.name)
       }
     })
   } else {
@@ -157,16 +154,14 @@ function ls(args: string[]) {
       elem.content.forEach((file) => {
         if (long) {
           let extra = ''
-          if (file.type == Filetype.folder) {
+          if (file.type === 'FOLDER') {
             extra += 'drwxrwxr-x'
           } else {
             extra += '-rw-rw-r--'
           }
           extra += ` ${props.user} ${props.user} ${
-            file.type == Filetype.folder ? '4096' : String(file.text!.length + 1)
-          } ${formatTimestamp(file.last)} ${
-            file.type == Filetype.folder ? file.name + '/' : file.name
-          }`
+            file.type === 'FOLDER' ? '4096' : String(file.text!.length + 1)
+          } ${formatTimestamp(file.last)} ${file.type === 'FOLDER' ? file.name + '/' : file.name}`
           return send('output', extra)
         } else {
           return send('output', file.name)
@@ -204,7 +199,7 @@ function find(input: string, start: File): FileExist {
   }
   const file = path[0]
   let fileObj
-  for (var i = 0; i < start.content.length; i++) {
+  for (let i = 0; i < start.content.length; i++) {
     if (start.content[i].name == file) {
       fileObj = start.content[i]
       console.log(`found part ${file}`)
@@ -228,12 +223,8 @@ function handleInput(line: string) {
   if (output != undefined && inputLine != undefined) {
     // TODO properly grab redirects
     const allArgs = getRedirects(line)
-    console.log(allArgs)
 
-    let redirects = allArgs.redirects
-    let inputRedirects = allArgs.inputRedirects
-    let pipes = allArgs.pipes
-    let appends = allArgs.appends
+    const { redirects, inputRedirects, pipes, appends } = allArgs
 
     if (
       redirects.includes('error') ||
@@ -304,9 +295,9 @@ function redirect(target: string, output: OutputLine) {
   const path = target.split('/')
   const dest = path.splice(-1)[0]
   const fileExists = find(path.join('/'), cwd)
-  if (fileExists.exist && fileExists.file!.type == Filetype.folder) {
+  if (fileExists.exist && fileExists.file!.type === 'FOLDER') {
     let updated = false
-    for (var j = 0; j < fileExists.file!.content.length; j++) {
+    for (let j = 0; j < fileExists.file!.content.length; j++) {
       if (fileExists.file!.content[j].name == dest) {
         fileExists.file!.content[j].last = Date.now()
         fileExists.file!.content[j].text = output.content
@@ -315,7 +306,7 @@ function redirect(target: string, output: OutputLine) {
       }
     }
     if (!updated) {
-      const file = new File(Filetype.file, dest, Date.now(), fileExists.file!, output.content)
+      const file = new File('FILE', dest, Date.now(), fileExists.file!, output.content)
       fileExists.file!.content.push(file)
     }
   } else {
@@ -371,7 +362,7 @@ function parseArgs(args: string[]) {
     return { options: rawOptions, folders }
   }
 
-  for (var i = 0; i < args.length; i++) {
+  for (let i = 0; i < args.length; i++) {
     if (args[i][0] == '-') {
       rawOptions.push(args[i])
     } else {
@@ -380,7 +371,7 @@ function parseArgs(args: string[]) {
   }
   rawOptions.forEach((elem) => {
     if (elem.substring(1).length > 1) {
-      for (let c of elem) {
+      for (const c of elem) {
         options.push(c)
       }
     } else {
@@ -408,7 +399,7 @@ function recCreateFolder(input: string, start: File, p: boolean): number {
     return recCreateFolder(path.join('/'), start.parent!, p)
   }
   let found
-  for (var i = 0; i < start.content.length; i++) {
+  for (let i = 0; i < start.content.length; i++) {
     if (start.content[i].name == path[0]) {
       found = start.content[i]
       break
@@ -420,7 +411,7 @@ function recCreateFolder(input: string, start: File, p: boolean): number {
     return recCreateFolder(path.join('/'), found, p)
   } else {
     if (p) {
-      const folder = new File(Filetype.folder, path[0], Date.now(), start)
+      const folder = new File('FOLDER', path[0], Date.now(), start)
       start.content.push(folder)
       path.splice(0, 1)
       return recCreateFolder(path.join('/'), folder, p)
@@ -428,7 +419,7 @@ function recCreateFolder(input: string, start: File, p: boolean): number {
       if (path.length > 1) {
         return -1
       }
-      const folder = new File(Filetype.folder, path[0], Date.now(), start)
+      const folder = new File('FOLDER', path[0], Date.now(), start)
       start.content.push(folder)
       path.splice(0, 1)
       return recCreateFolder(path.join('/'), folder, p)
@@ -437,16 +428,15 @@ function recCreateFolder(input: string, start: File, p: boolean): number {
 }
 
 function touch(args: string[]) {
-  let output = null
   const parsedArgs = parseArgs(args)
   //TODO check options
-  for (var i = 0; i < parsedArgs.folders.length; i++) {
+  for (let i = 0; i < parsedArgs.folders.length; i++) {
     const path = parsedArgs.folders[i].split('/')
     const dest = path.splice(-1)[0]
     const fileExists = find(path.join('/'), cwd)
-    if (fileExists.exist && fileExists.file!.type == Filetype.folder) {
+    if (fileExists.exist && fileExists.file!.type == 'FOLDER') {
       let updated = false
-      for (var j = 0; j < fileExists.file!.content.length; j++) {
+      for (let j = 0; j < fileExists.file!.content.length; j++) {
         if (fileExists.file!.content[j].name == dest) {
           fileExists.file!.last = Date.now()
           updated = true
@@ -454,7 +444,7 @@ function touch(args: string[]) {
         }
       }
       if (!updated) {
-        const file = new File(Filetype.file, dest, Date.now(), fileExists.file!, '')
+        const file = new File('FILE', dest, Date.now(), fileExists.file!, '')
         fileExists.file!.content.push(file)
       }
     } else {
@@ -464,7 +454,7 @@ function touch(args: string[]) {
       )
     }
   }
-  return output
+  return null
 }
 
 function getRedirects(input: string) {
@@ -478,7 +468,7 @@ function getRedirects(input: string) {
   const inputRedirects: string[] = []
   const appends: string[] = []
 
-  let pipeMatch = input.match(pipePattern)
+  const pipeMatch = input.match(pipePattern)
   if (pipeMatch) {
     pipeMatch.forEach((elem) => {
       const val = elem.substring(1).trim()
@@ -490,7 +480,7 @@ function getRedirects(input: string) {
     })
   }
 
-  let appendMatch = input.match(appendPattern)
+  const appendMatch = input.match(appendPattern)
   if (appendMatch) {
     appendMatch.forEach((elem) => {
       const val = elem.substring(1).trim()
@@ -502,7 +492,7 @@ function getRedirects(input: string) {
     })
   }
 
-  let redirectMatch = input.match(redirectPattern)
+  const redirectMatch = input.match(redirectPattern)
   if (redirectMatch) {
     redirectMatch.forEach((elem) => {
       const val = elem.substring(1).trim()
@@ -514,7 +504,7 @@ function getRedirects(input: string) {
     })
   }
 
-  let inputRedirectMatch = input.match(inputRedirectPattern)
+  const inputRedirectMatch = input.match(inputRedirectPattern)
   if (inputRedirectMatch) {
     inputRedirectMatch.forEach((elem) => {
       const val = elem.substring(1).trim()
@@ -537,21 +527,21 @@ function getRedirects(input: string) {
 
 // this is stupid af
 function cat(args: string[]) {
-  let output
-  const parsedArgs = parseArgs(args);
-      console.log(args);
-      parsedArgs.folders.forEach((elem) => {
-        const found = find(elem, cwd);
-        if (found.exist) {
-          if (found.file?.type == Filetype.file) {
-            output = send('output', found.file.text!);
-          } else {
-            output = send('error', `cat: ${elem}: ist in Verzeichnis`);
-          }
-        } else {
-          output = send('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`);
-        }
-      })
+  let output: OutputLine | null = null
+  const parsedArgs = parseArgs(args)
+  console.log(args)
+  parsedArgs.folders.forEach((elem) => {
+    const found = find(elem, cwd)
+    if (found.exist) {
+      if (found.file?.type == Filetype.file) {
+        output = send('output', found.file.text!)
+      } else {
+        output = send('error', `cat: ${elem}: ist in Verzeichnis`)
+      }
+    } else {
+      output = send('error', `cat: ${elem}: Datei oder Verzeichnis nicht gefunden`)
+    }
+  })
   return output
 }
 
@@ -561,4 +551,6 @@ defineExpose({
 })
 </script>
 
-<template></template>
+<template>
+  <div></div>
+</template>

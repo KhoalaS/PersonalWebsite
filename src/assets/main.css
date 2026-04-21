@@ -1,5 +1,5 @@
+@import 'tailwindcss';
 @import './base.css';
-@tailwind utilities;
 
 @keyframes color-change {
   0% {
@@ -36,4 +36,3 @@
   font-family: 'MS Sans Serif Bold';
   src: url('./ms_sans_serif_bold.woff2');
 }
-
