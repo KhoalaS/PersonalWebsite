@@ -20,22 +20,20 @@ export class File {
   }
 
   getAbsolutePath() {
-    let _parent = this.parent
     const parts: string[] = []
     parts.push(this.name)
-    while (_parent != undefined) {
-      parts.push(_parent.name)
-      _parent = _parent.parent
+    while (this.parent != undefined) {
+      parts.push(this.parent.name)
+      this.parent = this.parent.parent
     }
     return parts.reverse().join('/').substring(1)
   }
 
   getRoot(): File {
-    const _parent = this.parent
-    if (_parent == undefined) {
+    if (this.parent == undefined) {
       return this
     }
-    return _parent.getRoot()
+    return this.parent.getRoot()
   }
 }
 

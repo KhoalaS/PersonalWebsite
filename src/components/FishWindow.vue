@@ -1,111 +1,24 @@
 <script setup lang="ts">
-import { inject, onMounted, ref, useTemplateRef } from 'vue'
-import { parentKey } from '@/Keys'
-import Shell from './Shell.vue'
-
-const container = inject(parentKey)!
-let active = false
-let currentX: number
-let currentY: number
-let initialX: number
-let initialY: number
-let xOffset = 0
-let yOffset = 0
-
-const dragItemRef = useTemplateRef('dragItem')
-const dragTitleBarRef = useTemplateRef('dragTitleBar')
-const open = ref(true)
-
-function minimize() {
-  open.value = !open.value
-  if (open.value) {
-    dragItemRef.value!.style.display = ''
-  } else {
-    dragItemRef.value!.style.display = 'none'
-  }
-}
-
-defineExpose({
-  minimize
-})
-
-onMounted(() => {
-  container?.value?.addEventListener('touchstart', dragStart, false)
-  container?.value?.addEventListener('touchend', dragEnd, false)
-  container?.value?.addEventListener('touchmove', drag, false)
-
-  container?.value?.addEventListener('mousedown', dragStart, false)
-  container?.value?.addEventListener('mouseup', dragEnd, false)
-  container?.value?.addEventListener('mousemove', drag, false)
-})
-
-function dragStart(e: MouseEvent | TouchEvent) {
-  console.log(e)
-  if (e instanceof TouchEvent) {
-    initialX = e.touches[0].clientX - xOffset
-    initialY = e.touches[0].clientY - yOffset
-  } else {
-    initialX = e.clientX - xOffset
-    initialY = e.clientY - yOffset
-  }
-
-  if (e.target === dragTitleBarRef.value) {
-    active = true
-    console.log(e.target)
-  }
-  console.log('dragstart')
-}
-
-function dragEnd(e: MouseEvent | TouchEvent) {
-  console.log(e)
-
-  initialX = currentX
-  initialY = currentY
-
-  active = false
-}
-
-function drag(e: MouseEvent | TouchEvent) {
-  if (active) {
-    e.preventDefault()
-
-    if (e instanceof TouchEvent) {
-      currentX = e.touches[0].clientX - initialX
-      currentY = e.touches[0].clientY - initialY
-    } else {
-      currentX = e.clientX - initialX
-      currentY = e.clientY - initialY
-    }
-
-    xOffset = currentX
-    yOffset = currentY
-
-    setTranslate(currentX, currentY, dragItemRef.value)
-  }
-}
-
-function setTranslate(xPos: number, yPos: number, el: HTMLElement | null) {
-  if (el == null) {
-    return
-  }
-  el.style.transform = 'translate3d(' + xPos + 'px, ' + yPos + 'px, 0)'
-}
+import ShellComponent from './ShellComponent.vue'
+import { WindowBody, WindowComponent } from 'vue-98'
+import { TitlebarIcon } from 'vue-98'
 </script>
+
 <template>
-  <div ref="dragItem" class="window z-10">
-    <div ref="dragTitleBar" class="title-bar h-[20px] touch-none select-none">
-      <div class="flex gap-1 title-bar-text">
-        <div class="flex items-center">
-          <img class="h-4" src="/console_prompt.ico" />
-        </div>
-        fish
-      </div>
-      <div class="title-bar-controls">
-        <button @click="minimize" aria-label="Minimize"></button>
-        <button aria-label="Maximize"></button>
-        <button aria-label="Close"></button>
-      </div>
-    </div>
-    <Shell username="khoa" host="brave"></Shell>
-  </div>
+  <WindowComponent
+    :with-controller="false"
+    class="active"
+    ref="dragItem"
+    title="Fish"
+    :controls="['Minimize', 'Maximize', 'Close']"
+  >
+    <template #title-icon>
+      <TitlebarIcon icon="document"></TitlebarIcon>
+    </template>
+    <template #body>
+      <WindowBody>
+        <ShellComponent username="khoa" host="brave"></ShellComponent>
+      </WindowBody>
+    </template>
+  </WindowComponent>
 </template>

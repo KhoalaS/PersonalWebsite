@@ -15,10 +15,12 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "vue": "^3.5.32",
-    "vue-router": "^5.0.4",
     "@tailwindcss/vite": "^4.2.4",
-    "tailwindcss": "^4.2.4"
+    "pinia": "^3.0.4",
+    "tailwindcss": "^4.2.4",
+    "vue": "^3.5.32",
+    "vue-98": "^0.0.2",
+    "vue-router": "^5.0.4"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24",

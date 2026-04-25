@@ -1,56 +1,39 @@
 <script setup lang="ts">
-import FishWindow from "@/components/FishWindow.vue"
-import ProfileWindow from "@/components/ProfileWindow.vue"
-import TaskbarDivider from "@/components/TaskbarDivider.vue"
-import Thingy from "@/components/Thingy.vue"
+import FishWindow from '@/components/FishWindow.vue'
+import ProfileWindow from '@/components/ProfileWindow.vue'
 import ie from '@/assets/gifs/ie.gif'
 import ns from '@/assets/gifs/ns.gif'
 import css from '@/assets/css.gif'
 import html from '@/assets/w3c.png'
-import { provide, ref, onMounted, useTemplateRef } from 'vue'
-import { parentKey } from '@/Keys'
-
-const parentRef = useTemplateRef("parent")
-const fishWindowRef = useTemplateRef("fishWindow")
-const profileWindowRef = useTemplateRef("profileWindow")
-
-provide(parentKey, parentRef)
-
+import { ref, onMounted } from 'vue'
+import {
+  StartButton,
+  StatusBlock,
+  TabComponent,
+  TaskbarComponent,
+  TaskbarDivider,
+  TaskbarGroup
+} from 'vue-98'
 
 const height = ref(window.innerHeight)
 const time = ref(Date.now())
-
-const taskbarClass = ref(
-  `taskbar flex w-full gap-1 fixed p-1 top-[${height.value-36}px] left-0 z-10 w-full h-[36px] bg-[silver] border-2 border-red-500 self-end`
-)
 
 onMounted(() => {
   height.value = window.innerHeight
 })
 
-function updateTime(){
+function updateTime() {
   time.value += 5000
 }
 
 setInterval(updateTime, 5000)
-
-function minimize(key: string){
-  switch(key){
-    case "fish":
-      fishWindowRef.value?.minimize()
-      break;
-    case "profile":
-      profileWindowRef.value?.minimize()
-      break
-  }
-}
 </script>
 
 <template>
   <main ref="parent" class="flex justify-center gap-4 flex-1">
     <div class="w-[60vw] flex flex-col gap-2">
       <ProfileWindow ref="profileWindow"></ProfileWindow>
-      <FishWindow ref="fishWindow"></FishWindow>
+      <FishWindow></FishWindow>
     </div>
     <div class="w-[180px]">
       <iframe
@@ -77,44 +60,22 @@ function minimize(key: string){
       </div>
     </div>
   </main>
-  <div :class="taskbarClass">
-    <button id="start" class="flex items-center h-full w-fit">
-      <img class="h-[24px]" src="/windows.ico" />
-      <p class="font-bold">Start</p>
-    </button>
-    <TaskbarDivider></TaskbarDivider>
-    <Thingy></Thingy>
-    <div class="w-[136px]"></div>
-    <TaskbarDivider></TaskbarDivider>
-    <Thingy></Thingy>
-    <button @click="minimize('fish')" class="task flex items-center gap-1 w-[160px] text-left text-[14px]">
-      <div class="flex items-center">
-        <img class="w-6" src="/console_prompt.ico" />
-      </div>
-      fish
-    </button>
-    <button @click="minimize('profile')" class="task flex items-center gap-1 w-[160px] text-left text-[14px]">
-      <div class="flex items-center">
-        <img class="w-6" src="/msn3.ico" />
-      </div>
-      Profile
-    </button>
-    <TaskbarDivider class="ml-auto"></TaskbarDivider>
-    <div class="status-bar">
-      <p class="status-bar-field flex font-mssans px-2 items-center">
-        <div class="flex items-center">
-          <img class="w-5" src="/loudspeaker_rays.ico">
-        </div>
-        <p class="pl-2">
-          {{ (new Date(time).toLocaleTimeString('de-DE',{hour:"2-digit", minute:"2-digit"})).replace(":", ": ") }}
-        </p>
-      </p>
-    </div>
-  </div>
+  <TaskbarComponent>
+    <StartButton></StartButton>
+    <TaskbarGroup>
+      <TabComponent label="Fish"></TabComponent>
+      <TaskbarDivider></TaskbarDivider>
+      <TabComponent label="Personal"></TabComponent>
+    </TaskbarGroup>
+    <TaskbarDivider class="ml-auto!"></TaskbarDivider>
+    <StatusBlock></StatusBlock>
+  </TaskbarComponent>
 </template>
 <style scoped>
 .taskbar {
-  box-shadow: inset 0px 1px #fff, inset 0px 2px #dfdfdf;
+  box-shadow:
+    inset 0px 1px #fff,
+    inset 0px 2px #dfdfdf;
 }
 #start {
   padding: 0px 4px;
