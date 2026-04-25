@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { type Filetype, type OutputLine, type FileExist, File } from '@/Types'
-import { inject, reactive } from 'vue'
-import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
+import { type OutputLine, type FileExist, File } from '@/Types'
+import { reactive } from 'vue'
+import { shellOutputKey, shellInputKey } from '@/Keys'
 import { formatTimestamp } from '@/DateLib'
 import catMock from '@/mockScripts/cat.json'
+import { mustInject } from '@/utility/mustInject'
 
 const props = defineProps({
   user: {
@@ -18,10 +19,8 @@ const std = {
   err: ['2']
 }
 
-const output = inject(shellOutputKey)!
-const inputLine = inject(shellInputKey)!
-
-const width = inject(shellWidthKey)
+const output = mustInject(shellOutputKey)
+const inputLine = mustInject(shellInputKey)
 
 let cwd = reactive(new File('FOLDER', '/', Date.now()))
 
@@ -103,9 +102,6 @@ function ls(args: string[]) {
   const parsedArgs = parseArgs(args)
   const long = parsedArgs.options.includes('l')
 
-  if (width != undefined) {
-    console.log(width.value)
-  }
   if (parsedArgs.folders.length == 0) {
     const contents = cwd.content
     contents.forEach((file) => {
@@ -533,7 +529,7 @@ function cat(args: string[]) {
   parsedArgs.folders.forEach((elem) => {
     const found = find(elem, cwd)
     if (found.exist) {
-      if (found.file?.type == Filetype.file) {
+      if (found.file?.type == 'FILE') {
         output = send('output', found.file.text!)
       } else {
         output = send('error', `cat: ${elem}: ist in Verzeichnis`)

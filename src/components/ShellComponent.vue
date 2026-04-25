@@ -3,7 +3,6 @@ import { onMounted, onUpdated, provide, ref, useTemplateRef } from 'vue'
 import type { OutputLine } from '@/Types'
 import Filesystem from '@/components/Filesystem.vue'
 import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
-import FileTree from '@/components/FileTree.vue'
 
 const props = defineProps<{
   username: string
@@ -110,14 +109,6 @@ function sendPreamble() {
 
 <template>
   <div class="flex w-full">
-    <ul class="tree-view w-fit">
-      <FileTree
-        v-if="fsRef"
-        :root="fsRef.cwd.content"
-        :name="fsRef.cwd.name"
-        :filetype="fsRef.cwd.type"
-      ></FileTree>
-    </ul>
     <main class="crt w-full">
       <Filesystem :user="username" ref="fs"></Filesystem>
       <div
@@ -144,15 +135,17 @@ function sendPreamble() {
               <p v-if="line.path" class="text-white">{{ ':~' + line.path }}</p>
               <p v-else class="text-white">:~$</p>
             </div>
-            <textarea
-              v-else-if="line.content.split('\n').length > 1"
-              spellcheck="false"
-              v-model="line.content"
-              :rows="line.content.split('\n').length"
-              class="block px-2 h-fit text-white text-xl font-terminess w-full overflow-hidden resize-none focus:outline-none shadow-none"
-            ></textarea>
+            <div v-else-if="line.content.split('\n').length > 1" spellcheck="false">
+              <p
+                :key="idx"
+                v-for="(l, idx) in line.content.split('\n')"
+                class="text-white wrap-break-word whitespace-pre"
+              >
+                {{ l }}
+              </p>
+            </div>
             <div v-else>
-              <p class="text-white">{{ line.content }}</p>
+              <p class="text-white wrap-break-word whitespace-pre">{{ line.content }}</p>
             </div>
           </div>
         </div>
