@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: corepack install && corepack pnpm install
       - name: Build
-        run: pnpm run build
+        run: corepack pnpm run build
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
