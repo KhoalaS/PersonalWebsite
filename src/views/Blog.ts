@@ -19,12 +19,20 @@ export type Blog = {
   title: string
   date: string
   content: string
+  tags: string[]
+  description: string
 }
 
 export const blogs: Blog[] = [
   {
     title: 'Kann dein Builder das auch?',
     content: DOMPurify.sanitize(await marked.parse(builder_blog)),
-    date: '1777622081916'
+    date: '1777622081916',
+    description: '',
+    tags: ['ElysiaJS', 'Typescript', 'Builder Pattern']
   }
 ]
+
+export function getDisplayTitle(blog: Blog) {
+  return 'Blog ' + new Date(Number(blog.date)).toDateString()
+}

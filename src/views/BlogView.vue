@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import StandardLayout from '@/components/layout/StandardLayout.vue'
 import { TitlebarIcon, WindowBody, WindowComponent } from 'vue-98'
-import { blogs, type Blog } from './Blog'
+import { blogs, getDisplayTitle, type Blog } from './Blog'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -19,7 +19,7 @@ onMounted(async () => {
     <template #main-content>
       <WindowComponent
         v-if="currentBlog"
-        :title="'Blog ' + new Date(Number(currentBlog.date)).toDateString()"
+        :title="getDisplayTitle(currentBlog)"
         :with-controller="false"
         class="active my-4!"
       >

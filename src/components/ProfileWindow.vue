@@ -3,7 +3,7 @@ import { TitlebarIcon, WindowBody, WindowComponent } from 'vue-98'
 </script>
 
 <template>
-  <WindowComponent class="active" :with-controller="false">
+  <WindowComponent title="Personal" class="active" :with-controller="false">
     <template #title-icon>
       <TitlebarIcon icon="document"></TitlebarIcon>
     </template>
