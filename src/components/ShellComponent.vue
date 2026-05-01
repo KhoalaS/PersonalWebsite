@@ -2,7 +2,7 @@
 import { onMounted, onUpdated, provide, ref, useTemplateRef } from 'vue'
 import type { OutputLine } from '@/Types'
 import Filesystem from '@/components/Filesystem.vue'
-import { shellOutputKey, shellInputKey, shellWidthKey } from '@/Keys'
+import { shellOutputKey, shellInputKey, shellWidthKey } from '@/InjectionKeys'
 
 const props = defineProps<{
   username: string

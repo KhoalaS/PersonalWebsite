@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type OutputLine, type FileExist, File } from '@/Types'
 import { reactive } from 'vue'
-import { shellOutputKey, shellInputKey } from '@/Keys'
+import { shellOutputKey, shellInputKey } from '@/InjectionKeys'
 import { formatTimestamp } from '@/DateLib'
 import catMock from '@/mockScripts/cat.json'
 import { mustInject } from '@/utility/mustInject'
