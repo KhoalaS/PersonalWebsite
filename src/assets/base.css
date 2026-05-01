@@ -86,7 +86,6 @@ a {
 
 body {
   height: 100vh;
-  color: var(--color-text);
   background: darkcyan;
   transition:
     color 0.5s,
