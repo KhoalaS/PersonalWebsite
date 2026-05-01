@@ -20,6 +20,7 @@ import { TitlebarIcon, WindowBody, WindowComponent } from 'vue-98'
               <li>Go</li>
               <li>Android RE</li>
             </ul>
+            <RouterLink to="/blogs">Blogs</RouterLink>
           </div>
         </div>
       </WindowBody>
