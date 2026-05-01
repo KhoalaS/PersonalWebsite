@@ -68,7 +68,7 @@ setInterval(updateTime, 5000)
       <TabComponent label="Personal"></TabComponent>
     </TaskbarGroup>
     <TaskbarDivider class="ml-auto!"></TaskbarDivider>
-    <StatusBlock></StatusBlock>
+    <StatusBlock> </StatusBlock>
   </TaskbarComponent>
 </template>
 <style scoped>

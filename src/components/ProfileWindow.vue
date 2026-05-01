@@ -12,10 +12,7 @@ import { TitlebarIcon, WindowBody, WindowComponent } from 'vue-98'
         <div class="flex gap-2 p-1">
           <img class="w-[120px] h-[120px] rounded" src="/pfp_edit.jpg" />
           <div>
-            <p>
-              Hello my name is Khoa. I like programming, gaming, reverse engineering (still nub
-              tho).
-            </p>
+            <p>Hello my name is Khoa. I like programming, gaming, reverse engineering.</p>
             <label class="">My programming interests:</label>
             <ul style="list-style: circle; padding-inline-start: 16px">
               <li>Vue</li>

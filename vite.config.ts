@@ -9,6 +9,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: '/PersonalWebsite/',
   plugins: [tailwindcss(), vue(), vueDevTools()],
+  assetsInclude: ['**/*.md'],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

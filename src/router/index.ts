@@ -10,7 +10,7 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/blog',
+      path: '/blog/:timestamp',
       name: 'blog',
       component: () => import('@/views/BlogView.vue')
     }

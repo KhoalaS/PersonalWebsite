@@ -1,12 +1,55 @@
 <script setup lang="ts">
-const blogEntries = [1, 2, 3]
+import StandardLayout from '@/components/layout/StandardLayout.vue'
+import { TitlebarIcon, WindowBody, WindowComponent } from 'vue-98'
+import { blogs, type Blog } from './Blog'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+
+const currentBlog = ref<Blog | undefined>()
+const route = useRoute('blog')
+
+const ts = route.params.timestamp as string
+
+onMounted(async () => {
+  currentBlog.value = blogs.find((blog) => blog.date === ts)
+})
 </script>
 <template>
-  <main class="flex flex-col items-center w-full mx-4 bg-red-500">
-    <p class="text-2xl font-serif">Even more awesome Blog</p>
-    <div class="h-[1px] bg-black w-full"></div>
-    <div v-for="item in blogEntries">
-      {{ item }}
-    </div>
-  </main>
+  <StandardLayout>
+    <template #main-content>
+      <WindowComponent
+        v-if="currentBlog"
+        :title="'Blog ' + new Date(Number(currentBlog.date)).toDateString()"
+        :with-controller="false"
+        class="active my-4!"
+      >
+        <template #title-icon>
+          <TitlebarIcon icon="document"></TitlebarIcon>
+        </template>
+        <template #body>
+          <WindowBody>
+            <div class="content p-2 pt-0" v-html="currentBlog.content"></div>
+          </WindowBody>
+        </template>
+      </WindowComponent>
+    </template>
+  </StandardLayout>
 </template>
+
+<style scoped>
+.content :deep(pre) {
+  padding: 0.25rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  background-color: white;
+}
+
+.content :deep(a) {
+  color: var(--title-bar-blue);
+  text-decoration: underline;
+}
+
+.content :deep(.hljs-comment) {
+  font-style: italic;
+}
+</style>

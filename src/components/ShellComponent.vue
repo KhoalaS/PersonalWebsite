@@ -136,16 +136,12 @@ function sendPreamble() {
               <p v-else class="text-white">:~$</p>
             </div>
             <div v-else-if="line.content.split('\n').length > 1" spellcheck="false">
-              <p
-                :key="idx"
-                v-for="(l, idx) in line.content.split('\n')"
-                class="text-white wrap-break-word whitespace-pre"
-              >
+              <p :key="idx" v-for="(l, idx) in line.content.split('\n')" class="line">
                 {{ l }}
               </p>
             </div>
             <div v-else>
-              <p class="text-white wrap-break-word whitespace-pre">{{ line.content }}</p>
+              <p class="line">{{ line.content }}</p>
             </div>
           </div>
         </div>
@@ -165,6 +161,13 @@ function sendPreamble() {
 </template>
 
 <style scoped>
+.line {
+  color: var(--color-white);
+  white-space-collapse: preserve;
+  text-wrap-mode: wrap;
+  overflow-wrap: break-word;
+}
+
 #shell::-webkit-scrollbar {
   display: none;
 }
