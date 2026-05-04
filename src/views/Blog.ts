@@ -3,6 +3,7 @@ import { Marked } from 'marked'
 import builder_blog from '@/assets/blog/builder_blog.md?raw'
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js'
+import { formatApacheDate } from '@/DateLib'
 
 const marked = new Marked(
   markedHighlight({
@@ -34,5 +35,5 @@ export const blogs: Blog[] = [
 ]
 
 export function getDisplayTitle(blog: Blog) {
-  return 'Blog ' + new Date(Number(blog.date)).toDateString()
+  return 'Blog ' + formatApacheDate(new Date(Number(blog.date)))
 }

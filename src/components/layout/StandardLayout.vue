@@ -4,14 +4,14 @@
     <h1 class="text-4xl text-white text-center">
       <slot name="title"></slot>
     </h1>
-    <main class="flex-1 flex">
-      <aside class="column w-36">
+    <main class="flex-1 flex justify-center">
+      <aside class="column flex-1">
         <slot name="left-column"> </slot>
       </aside>
-      <div class="flex-1">
+      <div class="content">
         <slot name="main-content"></slot>
       </div>
-      <aside class="column w-36">
+      <aside class="column flex-1">
         <slot name="right-column"> </slot>
       </aside>
     </main>
@@ -19,15 +19,19 @@
 </template>
 
 <style scoped>
+.content {
+  width: 60vw;
+}
+
 @media (max-width: 768px) {
-  .column {
-    width: 3rem;
+  .content {
+    width: 80vw;
   }
 }
 
 @media (max-width: 320px) {
-  .column {
-    width: 0.5rem;
+  .content {
+    width: 95vw;
   }
 }
 </style>

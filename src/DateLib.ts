@@ -1,19 +1,6 @@
-export function formatTimestamp(unixtime: number) {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'Mai',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Okt',
-    'Nov',
-    'Dez'
-  ]
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
 
+export function formatTimestamp(unixtime: number) {
   const date = new Date(unixtime)
   const month = months[date.getMonth()]
   const day = date.getDate()
@@ -31,4 +18,15 @@ export function formatTimestamp(unixtime: number) {
       min > 9 ? min : '0' + min
     }`
   }
+}
+
+export function formatApacheDate(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = months[date.getMonth()]
+  const year = date.getFullYear()
+
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${day}-${month}-${year} ${hours}:${minutes}`
 }

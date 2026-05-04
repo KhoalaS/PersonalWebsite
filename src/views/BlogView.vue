@@ -37,19 +37,25 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.content {
+  font-family: 'Times New Roman', Times, serif !important;
+  background-color: white;
+  overflow: auto;
+}
+
+.content :deep(h1) {
+  font-weight: bold;
+}
+
 .content :deep(pre) {
   padding: 0.25rem;
   margin-top: 1rem;
   margin-bottom: 1rem;
-  background-color: white;
+  background-color: #282c34;
 }
 
 .content :deep(a) {
   color: var(--title-bar-blue);
   text-decoration: underline;
-}
-
-.content :deep(.hljs-comment) {
-  font-style: italic;
 }
 </style>
