@@ -1,29 +1,44 @@
 <script setup lang="ts">
 import StandardLayout from '@/components/layout/StandardLayout.vue'
 import { TitlebarIcon, WindowBody, WindowComponent } from 'vue-98'
-import { blogs, getDisplayTitle, type Blog } from './Blog'
+import { blogs, getDisplayTitle } from './Blog'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from './Blog'
+import { useHead } from '@unhead/vue'
 
-const currentBlog = ref<Blog | undefined>()
 const route = useRoute('blog')
+const content = ref('')
 
 const ts = route.params.timestamp as string
+const currentBlog = blogs.find((blog) => blog.date === ts)
+
+useHead({
+  title: currentBlog?.title,
+  meta: [
+    {
+      name: 'description',
+      content: currentBlog?.description
+    },
+    {
+      name: 'keywords',
+      content: (currentBlog?.tags ?? []).join(', ')
+    }
+  ]
+})
 
 onMounted(async () => {
-  currentBlog.value = blogs.find((blog) => blog.date === ts)
-  if (!currentBlog.value) return
-
-  currentBlog.value.content = DOMPurify.sanitize(await marked.parse(currentBlog.value.content))
+  if (currentBlog) {
+    content.value = DOMPurify.sanitize(await marked.parse(currentBlog.content))
+  }
 })
 </script>
 <template>
   <StandardLayout>
     <template #main-content>
       <WindowComponent
-        v-if="currentBlog"
+        v-if="content && currentBlog"
         :title="getDisplayTitle(currentBlog)"
         :with-controller="false"
         class="active my-4!"
@@ -33,7 +48,7 @@ onMounted(async () => {
         </template>
         <template #body>
           <WindowBody>
-            <div class="content p-2 pt-0" v-html="currentBlog.content"></div>
+            <div class="content p-2 pt-0" v-html="content"></div>
           </WindowBody>
         </template>
       </WindowComponent>

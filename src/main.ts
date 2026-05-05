@@ -8,6 +8,7 @@ import { createPinia } from 'pinia'
 import 'highlight.js/styles/night-owl.css'
 import routes from './router'
 import type { RouteRecordRaw } from 'vue-router'
+import { blogs } from './views/Blog'
 
 export const createApp = ViteSSG(
   App,
@@ -30,6 +31,6 @@ export const createApp = ViteSSG(
 
 export function includedRoutes(_, routes: RouteRecordRaw[]) {
   return routes.flatMap((route: RouteRecordRaw) => {
-    return route.name === 'blog' ? ['1777622081916'].map((slug) => `/blog/${slug}`) : route.path
+    return route.name === 'blog' ? blogs.map((blog) => `/blog/${blog.date}`) : route.path
   })
 }

@@ -28,7 +28,8 @@ export const blogs: Blog[] = [
     title: 'Kann dein Builder das auch?',
     content: builder_blog,
     date: '1777622081916',
-    description: '',
+    description:
+      'ElysiaJS Builder vergessen ihre Build-Steps nicht?!. Was das bedeutet und wie es funktioniert.',
     tags: ['ElysiaJS', 'Typescript', 'Builder Pattern']
   }
 ]

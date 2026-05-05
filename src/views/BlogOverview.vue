@@ -3,6 +3,17 @@ import StandardLayout from '@/components/layout/StandardLayout.vue'
 import BlogListing from '@/components/BlogListing.vue'
 import { WindowBody, WindowComponent } from 'vue-98'
 import { blogs } from './Blog'
+import { useHead } from '@unhead/vue'
+
+useHead({
+  title: 'Blogs',
+  meta: [
+    {
+      name: 'description',
+      content: 'Blog posts'
+    }
+  ]
+})
 </script>
 <template>
   <StandardLayout>
