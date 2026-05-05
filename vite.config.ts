@@ -10,6 +10,9 @@ export default defineConfig({
   base: '/PersonalWebsite/',
   plugins: [tailwindcss(), vue(), vueDevTools()],
   assetsInclude: ['**/*.md'],
+  build: {
+    emptyOutDir: true
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

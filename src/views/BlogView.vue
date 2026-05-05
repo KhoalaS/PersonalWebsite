@@ -4,6 +4,8 @@ import { TitlebarIcon, WindowBody, WindowComponent } from 'vue-98'
 import { blogs, getDisplayTitle, type Blog } from './Blog'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import DOMPurify from 'dompurify'
+import { marked } from './Blog'
 
 const currentBlog = ref<Blog | undefined>()
 const route = useRoute('blog')
@@ -12,6 +14,9 @@ const ts = route.params.timestamp as string
 
 onMounted(async () => {
   currentBlog.value = blogs.find((blog) => blog.date === ts)
+  if (!currentBlog.value) return
+
+  currentBlog.value.content = DOMPurify.sanitize(await marked.parse(currentBlog.value.content))
 })
 </script>
 <template>

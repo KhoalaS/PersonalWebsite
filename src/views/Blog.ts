@@ -1,11 +1,10 @@
-import DOMPurify from 'dompurify'
 import { Marked } from 'marked'
 import builder_blog from '@/assets/blog/builder_blog.md?raw'
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js'
 import { formatApacheDate } from '@/DateLib'
 
-const marked = new Marked(
+export const marked = new Marked(
   markedHighlight({
     emptyLangClass: 'hljs',
     langPrefix: 'hljs language-',
@@ -27,7 +26,7 @@ export type Blog = {
 export const blogs: Blog[] = [
   {
     title: 'Kann dein Builder das auch?',
-    content: DOMPurify.sanitize(await marked.parse(builder_blog)),
+    content: builder_blog,
     date: '1777622081916',
     description: '',
     tags: ['ElysiaJS', 'Typescript', 'Builder Pattern']

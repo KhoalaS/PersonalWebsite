@@ -5,21 +5,7 @@ import ie from '@/assets/gifs/ie.gif'
 import ns from '@/assets/gifs/ns.gif'
 import css from '@/assets/css.gif'
 import html from '@/assets/w3c.png'
-import { ref, onMounted } from 'vue'
 import { WindowBody, WindowComponent } from 'vue-98'
-
-const height = ref(window.innerHeight)
-const time = ref(Date.now())
-
-onMounted(() => {
-  height.value = window.innerHeight
-})
-
-function updateTime() {
-  time.value += 5000
-}
-
-setInterval(updateTime, 5000)
 </script>
 
 <template>
