@@ -17,7 +17,10 @@ const currentBlog = blogs.find((blog) => blog.date === ts)
 useSeoMeta({
   title: currentBlog?.title,
   description: currentBlog?.description,
-  articleTag: currentBlog?.tags
+  articleTag: currentBlog?.tags,
+  ogTitle: currentBlog?.title,
+  ogDescription: currentBlog?.description,
+  ogType: 'article'
 })
 
 onMounted(async () => {
