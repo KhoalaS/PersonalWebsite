@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import StandardLayout from '@/components/layout/StandardLayout.vue'
 import BlogListing from '@/components/BlogListing.vue'
-import { WindowBody, WindowComponent } from 'vue-98'
+import { WindowBody, WindowComponent, type WindowControls } from 'vue-98'
 import { blogs } from './Blog'
 import { useHead } from '@unhead/vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 useHead({
   title: 'Blogs',
@@ -14,11 +17,23 @@ useHead({
     }
   ]
 })
+
+function onControlClick(ctrl: WindowControls) {
+  if (ctrl === 'Close') {
+    router.push('/')
+  }
+}
 </script>
 <template>
   <StandardLayout>
     <template #main-content>
-      <WindowComponent title="index" class="active min-w-fit!" :with-controller="false">
+      <WindowComponent
+        :controls="['Close']"
+        title="index"
+        class="active min-w-fit!"
+        :with-controller="false"
+        @click:control="onControlClick"
+      >
         <template #body>
           <WindowBody class="listing-window">
             <h1 class="font-bold!">Index of /blogs</h1>
