@@ -23,15 +23,21 @@
   width: 60vw;
 }
 
+@media (max-width: 1280px) {
+  .content {
+    width: 70vw;
+  }
+}
+
 @media (max-width: 768px) {
   .content {
-    width: 80vw;
+    width: 95vw;
   }
 }
 
 @media (max-width: 320px) {
   .content {
-    width: 95vw;
+    width: 100vw;
   }
 }
 </style>
