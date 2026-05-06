@@ -6,7 +6,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from './Blog'
-import { useHead } from '@unhead/vue'
+import { useSeoMeta } from '@unhead/vue'
 
 const route = useRoute('blog')
 const content = ref('')
@@ -14,18 +14,10 @@ const content = ref('')
 const ts = route.params.timestamp as string
 const currentBlog = blogs.find((blog) => blog.date === ts)
 
-useHead({
+useSeoMeta({
   title: currentBlog?.title,
-  meta: [
-    {
-      name: 'description',
-      content: currentBlog?.description
-    },
-    {
-      name: 'keywords',
-      content: (currentBlog?.tags ?? []).join(', ')
-    }
-  ]
+  description: currentBlog?.description,
+  articleTag: currentBlog?.tags
 })
 
 onMounted(async () => {
