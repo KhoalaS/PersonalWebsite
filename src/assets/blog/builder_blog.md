@@ -5,14 +5,14 @@ Ich habe letztens etwas mit [ElysiaJS](https://elysiajs.com/) rumgespielt. Ein F
 Hier ein minimales Beispiel:
 
 ```ts
-import { Elysia, t } from "elysia"
-import { FooService } from "./service"
-import { treaty } from "@elysiajs/eden"
+import { Elysia, t } from 'elysia'
+import { FooService } from './service'
+import { treaty } from '@elysiajs/eden'
 
 // Server
 export const app = new Elysia()
   .post(
-    "/work",
+    '/work',
     async ({ body }) => {
       const response = await FooService.work(body)
       return response
@@ -29,10 +29,10 @@ export const app = new Elysia()
 export type App = typeof app
 
 // Client
-const client = treaty<App>("localhost:3000")
+const client = treaty<App>('localhost:3000')
 // Alles typisiert, Parameter für post-Funktion und data/error Werte
 const { data, error } = await client.work.post({
-  bar: "Hello"
+  bar: 'Hello'
 })
 ```
 
@@ -43,9 +43,9 @@ Und das wars schon. Alles schön und gut, aber was unterscheidet ElysiaJS vom Re
 Dabei fällt auf, dass die Typ Information aus den Build Schritten des Servers, den Typ der finalen Server Instanz verändert. Deshalb darf man beim Erzeugen des Servers auch die Method-Chain nicht unterbrechen. Am Ende ist es ja immer noch ein Builder.
 
 ```ts
-const app = new Elysia().get("/hello", "Hello Elysia")
+const app = new Elysia().get('/hello', 'Hello Elysia')
 
-app.get("/user/:id", ({ params: { id } }) => id)
+app.get('/user/:id', ({ params: { id } }) => id)
 // Der Server kennt nur den `/hello` Endpunkt
 ```
 
@@ -151,27 +151,55 @@ class Elysia<...> {
 }
 ```
 
-Was man nicht alles tut für Type Safety 🚬. Das Konzept lässt sich aber auf folgendes runterbrechen.
+Was man nicht alles tut für Type Safety 🚬. Das Konzept ist aber gar nicht kompliziert. Dazu implementieren wir als Beispiel eine Service Registry. Diese muss zwei Dinge können:
+
+- Bei der Registrierung eines Service hat man typisierten Zugriff auf alle bereits registrierten Services.
+- Man kann typisiert auf einen Service zugreifen.
 
 ```ts
-export class Builder<BuildContext = {}> {
-  augment<Key extends string, Value>(key: Key, value: Value) {
-    // Mach irgendwas mit key und value...
-    return this as Builder<
-      BuildContext & {
-        [K in typeof key]: Value
+class ServiceRegistry<Services = {}> {
+  private services: Record<string, unknown> = {}
+
+  register<Key extends string, T>(key: Key, value: (services: Services) => T) {
+    this.services[key] = value(this.services as Services)
+
+    return this as ServiceRegistry<
+      Services & {
+        [K in typeof key]: T
       }
     >
   }
 
-  access<Key extends keyof BuildContext>(
-    key: Key,
-    access: (value: BuildContext[Key]) => void
-  ) {
-    // Typisierter Zugriff auf einen Wert im BuildContext
+  getService<Key extends keyof Services>(key: Key): Services[Key] {
+    //@ts-expect-error Wir handeln die Typisierung selber
+    return this.services[key]
   }
 }
 ```
 
-Der "Trick" ist am Ende ein Klassen Typ Parameter, welcher bei jedem Build Step angereichert wird mit zusätzlicher Typ Information. Die typische Art TS zu verwenden wird hier in gewisser Weise umgekehrt. Man baut sich seine Kontext Types auf, basierend auf der Semantik eines Build Steps. Die Gültigkeit der Augmentation in `augment` ist abhängig vom Code innerhalb der Funktion und nicht von konkreten Werten die typisiert irgendwo existieren.
+Der "Trick" ist am Ende ein Klassen Typ Parameter, welcher bei jedem Build Step angereichert wird mit zusätzlicher Typ Information. Die typische Art TS zu verwenden wird hier in gewisser Weise umgekehrt. Man baut sich seine Kontext Types auf, basierend auf der Semantik eines Build Steps. Die Gültigkeit der Augmentation in `register` ist abhängig vom Code innerhalb der Funktion und nicht von konkreten Werten die typisiert irgendwo existieren.
 
+Und so wird die Registry benutzt:
+
+```ts
+interface FooService {}
+class FooServiceImpl implements FooService {}
+
+interface BarService {}
+class BarServiceImpl implements BarService {
+  constructor(private readonly fooService: FooService) {}
+}
+
+const registry = new ServiceRegistry()
+  .register('fooService', () => new FooServiceImpl() as FooService)
+  .register('barService', (services) => new BarServiceImpl(services.fooService) as BarService)
+
+
+type MyRegistry = typeof registry
+
+function doSomethingWithRegistry(registry: MyRegistry) {
+  const service: BarService = registry.getService('barService')
+}
+```
+
+Die `BarServiceImpl` hat eine Abhängigkeit auf einen `FooService`. Dieser wird über den typisierten `services`-Parameter injiziert. Damit die Registry nicht die Typen der Service-Implementierung preisgibt, muss ein Type-Assert auf das Interface gemacht werden.
